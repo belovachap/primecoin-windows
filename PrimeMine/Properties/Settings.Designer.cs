@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace miner_nvidia.Properties
+namespace PrimeMine.Properties
 {
 
 

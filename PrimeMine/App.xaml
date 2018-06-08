@@ -1,7 +1,7 @@
-﻿<Application x:Class="miner_nvidia.App"
+﻿<Application x:Class="PrimeMine.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:miner_nvidia"
+             xmlns:local="clr-namespace:PrimeMine"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
          

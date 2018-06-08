@@ -1,0 +1,22 @@
+﻿<Window x:Class="PrimeMine.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PrimeMine"
+        mc:Ignorable="d"
+        Title="PrimeMine" Height="450" Width="800">
+    <Grid>
+        <TabControl HorizontalAlignment="Left" VerticalAlignment="Top" Height="399" Width="772" Margin="10,10,0,0">
+            <TabItem x:Name="NetworkTabItem" Header="Network">
+                <Grid Background="#FFE5E5E5"/>
+            </TabItem>
+            <TabItem x:Name="BlockchainTabItem" Header="Blockchain">
+                <Grid Background="#FFE5E5E5"/>
+            </TabItem>
+            <TabItem x:Name="MineTabItem" Header="Mine"/>
+            <TabItem x:Name="WalletTabItem" Header="Wallet"/>
+        </TabControl>
+
+    </Grid>
+</Window>
