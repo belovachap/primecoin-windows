@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace PrimeMine
+namespace WinPrime
 {
     /// <summary>
     /// Interaction logic for App.xaml

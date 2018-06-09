@@ -3,7 +3,7 @@ using System.Net;
 
 using PrimeNetwork;
 
-namespace PrimeMine
+namespace WinPrime
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
