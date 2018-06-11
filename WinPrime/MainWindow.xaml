@@ -9,7 +9,9 @@
     <Grid>
         <TabControl HorizontalAlignment="Left" VerticalAlignment="Top" Height="399" Width="772" Margin="10,10,0,0">
             <TabItem x:Name="NetworkTabItem" Header="Network">
-                <Grid Background="#FFE5E5E5"/>
+                <Grid Background="#FFE5E5E5">
+                    <ListBox x:Name="ConnectionListBox" HorizontalAlignment="Left" Height="361" VerticalAlignment="Top" Width="400"/>
+                </Grid>
             </TabItem>
             <TabItem x:Name="BlockchainTabItem" Header="Blockchain">
                 <Grid Background="#FFE5E5E5"/>

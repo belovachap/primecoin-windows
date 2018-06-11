@@ -6,11 +6,11 @@ namespace PrimeNetwork
 {
     public class Connection
     {
-        IPAddress From;
-        IPAddress To;
-        UInt16 Port;
-        UInt64 Services;
-        TcpClient Client;
+        public IPAddress From { get; }
+        public IPAddress To { get; }
+        public UInt16 Port { get; }
+        public UInt64 Services { get; }
+        public TcpClient Client { get; }
 
         public Connection(
             IPAddress from,

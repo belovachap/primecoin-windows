@@ -1,5 +1,6 @@
-﻿using System.Windows;
+﻿using System;
 using System.Net;
+using System.Windows;
 
 using PrimeNetwork;
 
@@ -16,14 +17,19 @@ namespace WinPrime
         {
             InitializeComponent();
             connections = new ConnectionManager(IPAddress.Parse("127.0.0.1"), 9911);
+            connections.NewConnection += new EventHandler<NewConnectionEventArgs>(HandleNewConnection);
 
-            // How do you subscribe to an event?
-            // connections.NewConnection += HandleNewConnection;
+            // Really need to figure out how to run things in other threads.
+            // Blocks the UI from loading until done.
+            connections.Start();
+            
+            var message = string.Format("Made {0} connections!", connections.OutboundConnections.Count);
+            MessageBox.Show(message);
         }
 
         void HandleNewConnection(object sender, NewConnectionEventArgs a)
         {
-            MessageBox.Show("New connection made!");
+            ConnectionListBox.Items.Add(a.Connect.To);
         }
     }
 }
