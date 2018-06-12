@@ -160,7 +160,28 @@ namespace PrimeNetwork
 
         public IPAddressPayload(byte[] bytes)
         {
-            // Parse the passed bytes into fields.
+            TimeStamp = new DateTime(BitConverter.ToUInt32(bytes, 0));
+            Services = BitConverter.ToUInt64(bytes, 4);
+
+            var ipBytes = bytes.Skip(12).Take(16).ToArray();
+            var paddingBytes = new byte[] {
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0xFF, 0xFF,
+            };
+            // Check for an IPv4 address.
+            if (ipBytes.Take(12).SequenceEqual(paddingBytes))
+            {
+                Address = new IPAddress(ipBytes.Skip(12).ToArray());
+            }
+            else
+            {
+                Address = new IPAddress(ipBytes);
+            }
+
+            // Port sent in "Network Order", reverse the bytes for BitConverter.
+            var portBytes = new byte[] { bytes[29], bytes[28] };
+            Port = BitConverter.ToUInt16(portBytes, 0);
         }
 
         public override byte[] ToBytes()

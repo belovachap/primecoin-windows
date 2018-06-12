@@ -27,6 +27,14 @@ namespace PrimeNetworkTest
             Assert.AreEqual(expected.String, actual.String);
         }
 
+        void AssertIPAddressPayloadsEqual(IPAddressPayload expected, IPAddressPayload actual)
+        {
+            Assert.AreEqual(expected.Address, actual.Address);
+            Assert.AreEqual(expected.Port, actual.Port);
+            Assert.AreEqual(expected.Services, actual.Services);
+            Assert.AreEqual(expected.TimeStamp, actual.TimeStamp);
+        }
+
         [TestMethod]
         public void TestIntegerPayloadFromBytes()
         {
@@ -146,7 +154,7 @@ namespace PrimeNetworkTest
         }
 
         [TestMethod]
-        public void TestIPAddressPayloadToBytes()
+        public void TestIPAddressPayload()
         {
             IPAddressPayload payload;
             byte[] expected;
@@ -164,6 +172,7 @@ namespace PrimeNetworkTest
                 0x20, 0x8D // Port
             };
             AssertBytesEqual(expected, payload.ToBytes());
+            AssertIPAddressPayloadsEqual(payload, new IPAddressPayload(expected));
         }
 
         //[TestMethod]
