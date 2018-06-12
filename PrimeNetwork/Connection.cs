@@ -11,6 +11,8 @@ namespace PrimeNetwork
         public UInt16 Port { get; }
         public UInt64 Services { get; }
         public TcpClient Client { get; }
+        public NetworkStream Stream { get; }
+        public Int32 ProtocolVersion { get; }
 
         public Connection(
             IPAddress from,
@@ -23,15 +25,41 @@ namespace PrimeNetwork
             To = to;
             Port = port;
             Client = client;
+            Stream = Client.GetStream();
 
             SendVersionMessage();
             var verAck = ReceiveVerAckMessage();
-            var version = ReceiveVersionMessage();
+            //var version = ReceiveVersionMessage();
+        }
+
+        ~Connection()
+        {
+            Stream.Close();
+            Client.Close();
+        }
+
+        void SendMessage(String command, Payload payload)
+        {
+
+        }
+
+        void SendMessage(MessagePayload message)
+        {
+            Byte[] data = message.ToBytes();
+            Stream.Write(data, 0, data.Length);
+        }
+
+        MessagePayload ReceiveMessage()
+        {
+            var buffer = new Byte[1024];
+            Int32 bytesRead = Stream.Read(buffer, 0, buffer.Length);
+            return new MessagePayload(buffer);
         }
 
         void SendVersionMessage()
         {
-            var message = new MessagePayload();
+            var payload = GetVersionPayload();
+            SendMessage("version", payload);
         }
 
         VerAckPayload ReceiveVerAckMessage()
@@ -40,9 +68,16 @@ namespace PrimeNetwork
             return (VerAckPayload)message.CommandPayload;
         }
 
-        VersionPayload ReceiveVersionMessage()
+        //VersionPayload ReceiveVersionMessage()
+        //{
+        //    return new VersionPayload();
+        //}
+
+        public VersionPayload GetVersionPayload()
         {
-            return new VersionPayload();
+            var to = new IPAddressPayload(DateTime.UtcNow, 1, To, Port);
+            var from = new IPAddressPayload(DateTime.UtcNow, 0, From, Port);
+            return new VersionPayload(70001, 1, DateTime.UtcNow, to, from, 0, "/WinPrime-1.0.0/", 0, true);
         }
     }
 }

@@ -18,7 +18,29 @@ namespace PrimeNetworkTest
         }
 
         [TestMethod]
-        public void TestIntegerPayloadToBytes()
+        public void TestIntegerPayloadFromBytes()
+        {
+            // Checks edge cases around instantiating from bytes.
+
+            // No bytes won't work.
+            Assert.ThrowsException<ArgumentException>(
+                () => new IntegerPayload(new byte[] { })
+            );
+
+            // A single byte with the "flag" values won't work.
+            Assert.ThrowsException<ArgumentOutOfRangeException>(
+                () => new IntegerPayload(new byte[] { 0xFD })
+            );
+            Assert.ThrowsException<ArgumentOutOfRangeException>(
+                () => new IntegerPayload(new byte[] { 0xFE })
+            );
+            Assert.ThrowsException<ArgumentOutOfRangeException>(
+                () => new IntegerPayload(new byte[] { 0xFF })
+            );
+        }
+
+        [TestMethod]
+        public void TestIntegerPayload()
         {
             IntegerPayload payload;
             byte[] expected;
@@ -29,12 +51,15 @@ namespace PrimeNetworkTest
                 0x00
             };
             AssertBytesEqual(expected, payload.ToBytes());
+            var boop = new IntegerPayload(expected);
+            Assert.AreEqual(payload, new IntegerPayload(expected));
 
             payload = new IntegerPayload(0xFC);
             expected = new byte[] {
                 0xFC
             };
             AssertBytesEqual(expected, payload.ToBytes());
+            Assert.AreEqual(payload, new IntegerPayload(expected));
 
             // When integer is <= 0xFFFF write 0xFD and value as uint16
             payload = new IntegerPayload(0x00FD);
@@ -43,6 +68,7 @@ namespace PrimeNetworkTest
                 0xFD, 0x00
             };
             AssertBytesEqual(expected, payload.ToBytes());
+            Assert.AreEqual(payload, new IntegerPayload(expected));
 
             payload = new IntegerPayload(0xFFFF);
             expected = new byte[] {
@@ -50,6 +76,7 @@ namespace PrimeNetworkTest
                 0xFF, 0xFF
             };
             AssertBytesEqual(expected, payload.ToBytes());
+            Assert.AreEqual(payload, new IntegerPayload(expected));
 
             // When integer is <= 0xFFFFFFFF write 0xFE and value as uint32
             payload = new IntegerPayload(0x00010000);
@@ -58,6 +85,7 @@ namespace PrimeNetworkTest
                 0x00, 0x00, 0x01, 0x00
             };
             AssertBytesEqual(expected, payload.ToBytes());
+            Assert.AreEqual(payload, new IntegerPayload(expected));
 
             payload = new IntegerPayload(0xFFFFFFFF);
             expected = new byte[] {
@@ -65,6 +93,7 @@ namespace PrimeNetworkTest
                 0xFF, 0xFF, 0xFF, 0xFF
             };
             AssertBytesEqual(expected, payload.ToBytes());
+            Assert.AreEqual(payload, new IntegerPayload(expected));
 
             // 0XFF and value as uint64
             payload = new IntegerPayload(0x0000000100000000);
@@ -73,6 +102,7 @@ namespace PrimeNetworkTest
                 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
             };
             AssertBytesEqual(expected, payload.ToBytes());
+            Assert.AreEqual(payload, new IntegerPayload(expected));
 
             payload = new IntegerPayload(0xFFFFFFFFFFFFFFFF);
             expected = new byte[] {
@@ -80,6 +110,7 @@ namespace PrimeNetworkTest
                 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
             };
             AssertBytesEqual(expected, payload.ToBytes());
+            Assert.AreEqual(payload, new IntegerPayload(expected));
         }
 
         [TestMethod]

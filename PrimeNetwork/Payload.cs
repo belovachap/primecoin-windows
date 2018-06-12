@@ -49,9 +49,37 @@ namespace PrimeNetwork
             Integer = integer;
         }
 
-        public IntegerPayload(byte[] bytes)
+        public IntegerPayload(Byte[] bytes)
         {
-            // Parse the passed bytes into fields.
+            if (bytes.Length == 0) {
+                throw new ArgumentException("IntegerPayload from bytes requires at least one byte.");
+            }
+
+            if (bytes[0] < 0xFD) {
+                Integer = (UInt64)bytes[0];
+            }
+            else if (bytes[0] == 0xFD)
+            {
+                Integer = (UInt64)BitConverter.ToUInt16(bytes, 1);
+            }
+            else if (bytes[0] == 0xFE)
+            {
+                Integer = (UInt64)BitConverter.ToUInt32(bytes, 1);
+            }
+            else
+            {
+                Integer = BitConverter.ToUInt64(bytes, 1);
+            }
+        }
+
+        public override bool Equals(object other)
+        {
+            var otherPayload = other as IntegerPayload;
+            if (otherPayload == null)
+            {
+                return false;
+            }
+            return Integer == otherPayload.Integer;
         }
 
         public override byte[] ToBytes()
@@ -180,10 +208,6 @@ namespace PrimeNetwork
         public UInt32 StartHeight { get; }
         public Boolean Relay { get; }
 
-        // Just adding this empty constructor to not have to
-        // fill in some stubs... delete when they're finnished ;)
-        public VersionPayload() { }
-
         public VersionPayload(
             Int32 version,
             UInt64 services,
@@ -222,18 +246,12 @@ namespace PrimeNetwork
     public class VerAckPayload : Payload
     {
 
-        // Just adding this empty constructor to not have to
-        // fill in some stubs... delete when they're finnished ;)
         public VerAckPayload() { }
 
-        public VerAckPayload(byte[] bytes)
-        {
-            // Parse the passed bytes into fields.
-        }
+        public VerAckPayload(byte[] bytes) { }
 
         public override byte[] ToBytes()
         {
-            // Serialize to bytes.
             return new byte[0];
         }
     }
