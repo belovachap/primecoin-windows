@@ -72,16 +72,6 @@ namespace PrimeNetwork
             }
         }
 
-        public override bool Equals(object other)
-        {
-            var otherPayload = other as IntegerPayload;
-            if (otherPayload == null)
-            {
-                return false;
-            }
-            return Integer == otherPayload.Integer;
-        }
-
         public override byte[] ToBytes()
         {
             byte[] magic_byte;
@@ -114,16 +104,30 @@ namespace PrimeNetwork
 
     public class StringPayload : Payload
     {
-        public string String { get; }
+        public String String { get; }
 
-        public StringPayload(string str)
+        public StringPayload(String str)
         {
             String = str;
         }
 
-        public StringPayload(byte[] bytes)
+        public StringPayload(Byte[] bytes)
         {
-            // Parse the passed bytes into fields.
+            if (bytes.Length == 0)
+            {
+                throw new ArgumentException("StringPayload from bytes requires at least one byte.");
+            }
+
+            if (bytes[0] == 0x00)
+            {
+                String = "";
+            }
+            else
+            {
+                var size = new IntegerPayload(bytes);
+                var offset = size.ToBytes().Length;
+                String = Encoding.ASCII.GetString(bytes, offset, (Int32)size.Integer);
+            }
         }
 
         public override byte[] ToBytes()
@@ -252,7 +256,7 @@ namespace PrimeNetwork
 
         public override byte[] ToBytes()
         {
-            return new byte[0];
+            return new byte[] { };
         }
     }
 }

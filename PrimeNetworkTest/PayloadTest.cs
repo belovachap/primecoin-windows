@@ -17,6 +17,16 @@ namespace PrimeNetworkTest
             }
         }
 
+        void AssertIntegerPayloadsEqual(IntegerPayload expected, IntegerPayload actual)
+        {
+            Assert.AreEqual(expected.Integer, actual.Integer);
+        }
+
+        void AssertStringPayloadsEqual(StringPayload expected, StringPayload actual)
+        {
+            Assert.AreEqual(expected.String, actual.String);
+        }
+
         [TestMethod]
         public void TestIntegerPayloadFromBytes()
         {
@@ -51,15 +61,14 @@ namespace PrimeNetworkTest
                 0x00
             };
             AssertBytesEqual(expected, payload.ToBytes());
-            var boop = new IntegerPayload(expected);
-            Assert.AreEqual(payload, new IntegerPayload(expected));
+            AssertIntegerPayloadsEqual(payload, new IntegerPayload(expected));
 
             payload = new IntegerPayload(0xFC);
             expected = new byte[] {
                 0xFC
             };
             AssertBytesEqual(expected, payload.ToBytes());
-            Assert.AreEqual(payload, new IntegerPayload(expected));
+            AssertIntegerPayloadsEqual(payload, new IntegerPayload(expected));
 
             // When integer is <= 0xFFFF write 0xFD and value as uint16
             payload = new IntegerPayload(0x00FD);
@@ -68,7 +77,7 @@ namespace PrimeNetworkTest
                 0xFD, 0x00
             };
             AssertBytesEqual(expected, payload.ToBytes());
-            Assert.AreEqual(payload, new IntegerPayload(expected));
+            AssertIntegerPayloadsEqual(payload, new IntegerPayload(expected));
 
             payload = new IntegerPayload(0xFFFF);
             expected = new byte[] {
@@ -76,7 +85,7 @@ namespace PrimeNetworkTest
                 0xFF, 0xFF
             };
             AssertBytesEqual(expected, payload.ToBytes());
-            Assert.AreEqual(payload, new IntegerPayload(expected));
+            AssertIntegerPayloadsEqual(payload, new IntegerPayload(expected));
 
             // When integer is <= 0xFFFFFFFF write 0xFE and value as uint32
             payload = new IntegerPayload(0x00010000);
@@ -85,7 +94,7 @@ namespace PrimeNetworkTest
                 0x00, 0x00, 0x01, 0x00
             };
             AssertBytesEqual(expected, payload.ToBytes());
-            Assert.AreEqual(payload, new IntegerPayload(expected));
+            AssertIntegerPayloadsEqual(payload, new IntegerPayload(expected));
 
             payload = new IntegerPayload(0xFFFFFFFF);
             expected = new byte[] {
@@ -93,7 +102,7 @@ namespace PrimeNetworkTest
                 0xFF, 0xFF, 0xFF, 0xFF
             };
             AssertBytesEqual(expected, payload.ToBytes());
-            Assert.AreEqual(payload, new IntegerPayload(expected));
+            AssertIntegerPayloadsEqual(payload, new IntegerPayload(expected));
 
             // 0XFF and value as uint64
             payload = new IntegerPayload(0x0000000100000000);
@@ -102,7 +111,7 @@ namespace PrimeNetworkTest
                 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
             };
             AssertBytesEqual(expected, payload.ToBytes());
-            Assert.AreEqual(payload, new IntegerPayload(expected));
+            AssertIntegerPayloadsEqual(payload, new IntegerPayload(expected));
 
             payload = new IntegerPayload(0xFFFFFFFFFFFFFFFF);
             expected = new byte[] {
@@ -110,11 +119,11 @@ namespace PrimeNetworkTest
                 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
             };
             AssertBytesEqual(expected, payload.ToBytes());
-            Assert.AreEqual(payload, new IntegerPayload(expected));
+            AssertIntegerPayloadsEqual(payload, new IntegerPayload(expected));
         }
 
         [TestMethod]
-        public void TestStringPayloadToBytes()
+        public void TestStringPayload()
         {
             StringPayload payload;
             byte[] expected;
@@ -125,6 +134,7 @@ namespace PrimeNetworkTest
                 0x00,
             };
             AssertBytesEqual(expected, payload.ToBytes());
+            AssertStringPayloadsEqual(payload, new StringPayload(expected));
 
             payload = new StringPayload("testing.");
             expected = new byte[] {
@@ -132,6 +142,7 @@ namespace PrimeNetworkTest
                 0x74, 0x65, 0x73, 0x74, 0x69, 0x6E, 0x67, 0x2E,
             };
             AssertBytesEqual(expected, payload.ToBytes());
+            AssertStringPayloadsEqual(payload, new StringPayload(expected));
         }
 
         [TestMethod]
