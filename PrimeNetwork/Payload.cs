@@ -74,8 +74,8 @@ namespace PrimeNetwork
 
         public override byte[] ToBytes()
         {
-            byte[] magic_byte;
-            byte[] integer_bytes;
+            byte[] magicByte;
+            byte[] integerBytes;
 
             if (Integer < 0xFD)
             {
@@ -83,21 +83,21 @@ namespace PrimeNetwork
             }
             else if (Integer <= 0xFFFF)
             {
-                magic_byte = new byte[] { 0xFD };
-                integer_bytes = BitConverter.GetBytes((UInt16)Integer);
-                return magic_byte.Concat(integer_bytes).ToArray();
+                magicByte = new byte[] { 0xFD };
+                integerBytes = BitConverter.GetBytes((UInt16)Integer);
+                return magicByte.Concat(integerBytes).ToArray();
             }
             else if (Integer <= 0xFFFFFFFF)
             {
-                magic_byte = new byte[] { 0xFE };
-                integer_bytes = BitConverter.GetBytes((UInt32)Integer);
-                return magic_byte.Concat(integer_bytes).ToArray();
+                magicByte = new byte[] { 0xFE };
+                integerBytes = BitConverter.GetBytes((UInt32)Integer);
+                return magicByte.Concat(integerBytes).ToArray();
             }
             else
             {
-                magic_byte = new byte[] { 0xFF };
-                integer_bytes = BitConverter.GetBytes(Integer);
-                return magic_byte.Concat(integer_bytes).ToArray();
+                magicByte = new byte[] { 0xFF };
+                integerBytes = BitConverter.GetBytes(Integer);
+                return magicByte.Concat(integerBytes).ToArray();
             }
         }
     }
@@ -146,13 +146,13 @@ namespace PrimeNetwork
         public UInt16 Port { get; }
 
         public IPAddressPayload(
-            DateTime time_stamp,
+            DateTime timeStamp,
             UInt64 services,
             IPAddress address,
             UInt16 port
         )
         {
-            TimeStamp = time_stamp;
+            TimeStamp = timeStamp;
             Services = services;
             Address = address;
             Port = port;
@@ -186,16 +186,16 @@ namespace PrimeNetwork
 
         public override byte[] ToBytes()
         {
-            byte[] time_stamp_bytes = BitConverter.GetBytes((UInt32)TimeStamp.Ticks);
-            byte[] services_bytes = BitConverter.GetBytes(Services);
-            byte[] address_bytes = IPAddressToBytes(Address);
-            byte[] port_bytes = BitConverter.GetBytes(Port);
-            Array.Reverse(port_bytes); // Sent in network byte order
+            byte[] timeStampBytes = BitConverter.GetBytes((UInt32)TimeStamp.Ticks);
+            byte[] servicesBytes = BitConverter.GetBytes(Services);
+            byte[] addressBytes = IPAddressToBytes(Address);
+            byte[] portBytes = BitConverter.GetBytes(Port);
+            Array.Reverse(portBytes); // Sent in network byte order
             
-            return time_stamp_bytes
-                   .Concat(services_bytes)
-                   .Concat(address_bytes)
-                   .Concat(port_bytes)
+            return timeStampBytes
+                   .Concat(servicesBytes)
+                   .Concat(addressBytes)
+                   .Concat(portBytes)
                    .ToArray();
         }
 
@@ -229,42 +229,92 @@ namespace PrimeNetwork
         public IPAddressPayload AddressTo { get; }
         public IPAddressPayload AddressFrom { get; }
         public UInt64 Nonce { get; }
-        public String UserAgent { get; }
+        public StringPayload UserAgent { get; }
         public UInt32 StartHeight { get; }
         public Boolean Relay { get; }
 
         public VersionPayload(
             Int32 version,
             UInt64 services,
-            DateTime time_stamp,
-            IPAddressPayload address_to,
-            IPAddressPayload address_from,
+            DateTime timeStamp,
+            IPAddressPayload addressTo,
+            IPAddressPayload addressFrom,
             UInt64 nonce,
-            String user_agent,
-            UInt32 start_height,
+            StringPayload userAgent,
+            UInt32 startHeight,
             Boolean relay
         )
         {
             Version = version;
             Services = services;
-            TimeStamp = time_stamp;
-            AddressTo = address_to;
-            AddressFrom = address_from;
+            TimeStamp = timeStamp;
+            AddressTo = addressTo;
+            AddressFrom = addressFrom;
             Nonce = nonce;
-            UserAgent = user_agent;
-            StartHeight = start_height;
+            UserAgent = userAgent;
+            StartHeight = startHeight;
             Relay = relay;
         }
 
         public VersionPayload(byte[] bytes)
         {
-            // Parse the passed bytes into fields.
+            Version = BitConverter.ToInt32(bytes, 0);
+            Services = BitConverter.ToUInt64(bytes, 4);
+            TimeStamp = new DateTime(BitConverter.ToInt64(bytes, 12));
+            var remaining = bytes.Skip(20);
+
+            // AddressTo
+            var missingTimeStampBytes = new byte[] {
+                0x00, 0x00, 0x00, 0x00,
+            };
+            var addressToBytes = missingTimeStampBytes
+                                 .Concat(remaining.Take(26))
+                                 .ToArray();
+            AddressTo = new IPAddressPayload(addressToBytes);
+            remaining = remaining.Skip(26);
+
+            // AddressFrom
+            var addressFromBytes = missingTimeStampBytes
+                                   .Concat(remaining.Take(26))
+                                   .ToArray();
+            AddressFrom = new IPAddressPayload(addressFromBytes);
+            remaining = remaining.Skip(26);
+
+            Nonce = BitConverter.ToUInt64(remaining.ToArray(), 0);
+            remaining = remaining.Skip(8);
+
+            UserAgent = new StringPayload(remaining.ToArray());
+            remaining = remaining.Skip(UserAgent.ToBytes().Length);
+
+            StartHeight = BitConverter.ToUInt32(remaining.ToArray(), 0);
+            Relay = BitConverter.ToBoolean(remaining.ToArray(), 4);
         }
 
         public override byte[] ToBytes()
         {
-            // Serialize to bytes.
-            return new byte[1];
+            var versionBytes = BitConverter.GetBytes(Version);
+            var servicesBytes = BitConverter.GetBytes(Services);
+            var timeStampBytes = BitConverter.GetBytes(TimeStamp.Ticks);
+
+            // We leave out the IPAddress TimeStamp in the Version Message.
+            var addressToBytes = AddressTo.ToBytes().Skip(4).ToArray();
+            var addressFromBytes = AddressFrom.ToBytes().Skip(4).ToArray();
+
+            var nonceBytes = BitConverter.GetBytes(Nonce);
+            var userAgentBytes = UserAgent.ToBytes();
+            var startHeightBytes = BitConverter.GetBytes(StartHeight);
+            var relayBytes = BitConverter.GetBytes(Relay);
+            
+            return versionBytes
+                   .Concat(servicesBytes)
+                   .Concat(timeStampBytes)
+                   .Concat(addressToBytes)
+                   .Concat(addressFromBytes)
+                   .Concat(nonceBytes)
+                   .Concat(userAgentBytes)
+                   .Concat(startHeightBytes)
+                   .Concat(relayBytes)
+                   .ToArray();
         }
     }
 

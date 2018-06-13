@@ -35,6 +35,19 @@ namespace PrimeNetworkTest
             Assert.AreEqual(expected.TimeStamp, actual.TimeStamp);
         }
 
+        void AssertVersionPayloadsEqual(VersionPayload expected, VersionPayload actual)
+        {
+            Assert.AreEqual(expected.Version, actual.Version);
+            Assert.AreEqual(expected.Services, actual.Services);
+            Assert.AreEqual(expected.TimeStamp, actual.TimeStamp);
+            AssertIPAddressPayloadsEqual(expected.AddressFrom, actual.AddressFrom);
+            AssertIPAddressPayloadsEqual(expected.AddressTo, actual.AddressTo);
+            Assert.AreEqual(expected.Nonce, actual.Nonce);
+            AssertStringPayloadsEqual(expected.UserAgent, actual.UserAgent);
+            Assert.AreEqual(expected.StartHeight, actual.StartHeight);
+            Assert.AreEqual(expected.Relay, actual.Relay);
+        }
+
         [TestMethod]
         public void TestIntegerPayloadFromBytes()
         {
@@ -160,7 +173,7 @@ namespace PrimeNetworkTest
             byte[] expected;
 
             payload = new IPAddressPayload(
-               time_stamp: new DateTime((Int64)1000),
+               timeStamp: new DateTime(1000),
                services: (UInt64)1,
                address: IPAddress.Parse("10.0.0.1"),
                port: (UInt16)8333
@@ -175,35 +188,63 @@ namespace PrimeNetworkTest
             AssertIPAddressPayloadsEqual(payload, new IPAddressPayload(expected));
         }
 
-        //[TestMethod]
-        //public void TestVersoinPayloadToBytes()
-        //{
-        //    VersionPayload payload;
-        //    byte[] expected;
+        [TestMethod]
+        public void TestVersoinPayload()
+        {
+            VersionPayload payload;
+            byte[] expected;
 
-        //    payload = new VersionPayload(
-        //       time_stamp: new DateTime((Int64)1000),
-        //       services: (UInt64)1,
-        //       address_to: new IPAddressPayload(
-        //           time_stamp: DateTime.UtcNow,
-        //           services: (UInt64)1,
-        //           address: IPAddress.Parse("10.0.0.2"),
-        //           port: (UInt16)9911
-        //       ),
-        //       address_from: new IPAddressPayload(
-        //           time_stamp: DateTime.UtcNow,
-        //           services: (UInt64)1,
-        //           address: IPAddress.Parse("10.0.0.1"),
-        //           port: (UInt16)9911
-        //       )
-        //    );
-        //    expected = new byte[] {
-        //        0xE8, 0x03, 0x00, 0x00, // TimeStamp
-        //        0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Services
-        //        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x0A, 0x00, 0x00, 0x01, // IPAddress
-        //        0x20, 0x8D // Port
-        //    };
-        //    AssertBytesEqual(expected, payload.ToBytes());
-        //}
+            payload = new VersionPayload(
+                version: 70001,
+                services: 0x01,
+                timeStamp: new DateTime(1000),
+                addressTo: new IPAddressPayload(
+                    timeStamp: new DateTime(),
+                    services: (UInt64)1,
+                    address: IPAddress.Parse("10.0.0.2"),
+                    port: (UInt16)9911
+                ),
+                addressFrom: new IPAddressPayload(
+                    timeStamp: new DateTime(),
+                    services: (UInt64)1,
+                    address: IPAddress.Parse("10.0.0.1"),
+                    port: (UInt16)9911
+                ),
+                nonce: 0,
+                userAgent: new StringPayload("/UnitTest-v0.0.1/"),
+                startHeight: 1000,
+                relay: true
+            );
+            expected = new byte[] {
+                0x71, 0x11, 0x01, 0x00,                         // Version
+                0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Services 
+                0xE8, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // TimeStamp
+                
+                // AddressTo
+                0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Services
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Address...
+                0x00, 0x00, 0xFF, 0xFF, 0x0A, 0x00, 0x00, 0x02, // ...
+                0x26, 0xB7,                                     // Port
+                
+                // AddressFrom
+                0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Services
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Address...
+                0x00, 0x00, 0xFF, 0xFF, 0x0A, 0x00, 0x00, 0x01, // ...
+                0x26, 0xB7,                                     // Port
+
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Nonce
+
+                // UserAgent
+                17,                                             // UserAgent byte count
+                0x2F, 0x55, 0x6E, 0x69, 0x74, 0x54, 0x65, 0x73, // "/UnitTest-v0.0.1/"...
+                0x74, 0x2D, 0x76, 0x30, 0x2E, 0x30, 0x2E, 0x31, // ...
+                0x2F,                                           // ...
+
+                0xE8, 0x03, 0x00, 0x00,                         // StartHeight
+                0x01                                            // Relay
+            };
+            AssertBytesEqual(expected, payload.ToBytes());
+            AssertVersionPayloadsEqual(payload, new VersionPayload(expected));
+        }
     }
 }
