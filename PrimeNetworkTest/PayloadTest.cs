@@ -48,6 +48,16 @@ namespace PrimeNetworkTest
             Assert.AreEqual(expected.Relay, actual.Relay);
         }
 
+        void AssertMessagePayloadsEqual(MessagePayload expected, MessagePayload actual)
+        {
+            Assert.AreEqual(expected.Magic, actual.Magic);
+            Assert.AreEqual(expected.Command, actual.Command);
+            AssertBytesEqual(
+                expected.CommandPayload.ToBytes(),
+                actual.CommandPayload.ToBytes()
+            );
+        }
+
         [TestMethod]
         public void TestIntegerPayloadFromBytes()
         {
@@ -245,6 +255,76 @@ namespace PrimeNetworkTest
             };
             AssertBytesEqual(expected, payload.ToBytes());
             AssertVersionPayloadsEqual(payload, new VersionPayload(expected));
+        }
+
+        [TestMethod]
+        public void TestMessagePayload()
+        {
+            MessagePayload payload;
+            byte[] expected;
+
+            var commandPayload = new VersionPayload(
+                version: 70001,
+                services: 0x01,
+                timeStamp: new DateTime(1000),
+                addressTo: new IPAddressPayload(
+                    timeStamp: new DateTime(),
+                    services: (UInt64)1,
+                    address: IPAddress.Parse("10.0.0.2"),
+                    port: (UInt16)9911
+                ),
+                addressFrom: new IPAddressPayload(
+                    timeStamp: new DateTime(),
+                    services: (UInt64)1,
+                    address: IPAddress.Parse("10.0.0.1"),
+                    port: (UInt16)9911
+                ),
+                nonce: 0,
+                userAgent: new StringPayload("/UnitTest-v0.0.1/"),
+                startHeight: 1000,
+                relay: true
+            );
+
+            UInt32 magic = 0xE4E7E5E7;
+
+            payload = new MessagePayload(magic, "version", commandPayload);
+            expected = new byte[] {
+                0xE7, 0xE5, 0xE7, 0xE4,                         // Primecoin Magic Bytes
+                0x76, 0x65, 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x00, // version Command zero padded ...
+                0x00, 0x00, 0x00, 0x00,                         // ...
+                0x67, 0x00, 0x00, 0x00,                         // Length
+                0xF2, 0xC8, 0x73, 0x0E,                         // Checksum
+
+                // VersionPayload
+                0x71, 0x11, 0x01, 0x00,                         // Version
+                0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Services 
+                0xE8, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // TimeStamp
+                
+                // AddressTo
+                0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Services
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Address...
+                0x00, 0x00, 0xFF, 0xFF, 0x0A, 0x00, 0x00, 0x02, // ...
+                0x26, 0xB7,                                     // Port
+                
+                // AddressFrom
+                0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Services
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Address...
+                0x00, 0x00, 0xFF, 0xFF, 0x0A, 0x00, 0x00, 0x01, // ...
+                0x26, 0xB7,                                     // Port
+
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Nonce
+
+                // UserAgent
+                17,                                             // UserAgent byte count
+                0x2F, 0x55, 0x6E, 0x69, 0x74, 0x54, 0x65, 0x73, // "/UnitTest-v0.0.1/"...
+                0x74, 0x2D, 0x76, 0x30, 0x2E, 0x30, 0x2E, 0x31, // ...
+                0x2F,                                           // ...
+
+                0xE8, 0x03, 0x00, 0x00,                         // StartHeight
+                0x01                                            // Relay
+            };
+            AssertBytesEqual(expected, payload.ToBytes());
+            AssertMessagePayloadsEqual(payload, new MessagePayload(expected));
         }
     }
 }

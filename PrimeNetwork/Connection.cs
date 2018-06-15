@@ -28,7 +28,7 @@ namespace PrimeNetwork
             Stream = Client.GetStream();
 
             SendVersionMessage();
-            var verAck = ReceiveVerAckMessage();
+            //var verAck = ReceiveVerAckMessage();
             //var version = ReceiveVersionMessage();
         }
 
@@ -62,11 +62,11 @@ namespace PrimeNetwork
             SendMessage("version", payload);
         }
 
-        VerAckPayload ReceiveVerAckMessage()
-        {
-            var message = new MessagePayload();
-            return (VerAckPayload)message.CommandPayload;
-        }
+        //VerAckPayload ReceiveVerAckMessage()
+        //{
+        //    var message = new MessagePayload();
+        //    return (VerAckPayload)message.CommandPayload;
+        //}
 
         //VersionPayload ReceiveVersionMessage()
         //{

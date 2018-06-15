@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using System.Net;
+using System.Security.Cryptography;
 
 namespace PrimeNetwork
 {
@@ -13,13 +14,18 @@ namespace PrimeNetwork
     public class MessagePayload : Payload
     {
         public UInt32 Magic { get; }
-        public string Command { get; }
+        public String Command { get; }
         public Payload CommandPayload { get; }
 
-        public byte[] MessageBytes { get; }
-
-        public MessagePayload()
+        public MessagePayload(UInt32 magic, String command, Payload commandPayload)
         {
+            if (Encoding.ASCII.GetBytes(command).Length > 12)
+            {
+                throw new ArgumentException("command must be 12 or fewer ascii bytes");
+            }
+            Magic = magic;
+            Command = command;
+            CommandPayload = commandPayload;
             // Magic = magic;
             // Command = command;
             // Payload = payload;
@@ -30,13 +36,64 @@ namespace PrimeNetwork
 
         public MessagePayload(byte[] bytes)
         {
-            // Parse the passed bytes into fields.
+            Magic = BitConverter.ToUInt32(bytes, 0);
+            var remaining = bytes.Skip(4);
+
+            Command = Encoding.ASCII.GetString(remaining.Take(12).ToArray());
+            Command = Command.TrimEnd(new char[]{'\0'});
+            remaining = remaining.Skip(12);
+
+            var length = BitConverter.ToUInt32(remaining.ToArray(), 0);
+            remaining = remaining.Skip(4);
+
+            var checkSum = remaining.Take(4).ToArray();
+            remaining = remaining.Skip(4);
+
+            var payload = remaining.Take((Int32)length).ToArray();
+
+            SHA256 sha256 = SHA256Managed.Create();
+            var computedCheckSum = sha256.ComputeHash(sha256.ComputeHash(payload)).Take(4);
+
+            if (!checkSum.SequenceEqual(computedCheckSum.ToArray()))
+            {
+                throw new ArgumentException("checksum of payload does not match!");
+            }
+
+            switch (Command)
+            {
+                case "version":
+                    CommandPayload = new VersionPayload(payload);
+                    break;
+
+                default:
+                    throw new ArgumentException("unkown command");
+            }
+
         }
 
         public override byte[] ToBytes()
         {
-            // Serialize to bytes.
-            return new byte[1];
+            var magicBytes = BitConverter.GetBytes(Magic);
+
+            var paddedCommandBytes = new Byte[12];
+            var commandBytes = Encoding.ASCII.GetBytes(Command);
+            for (Int32 i = 0; i < commandBytes.Length; i++)
+            {
+                paddedCommandBytes[i] = commandBytes[i];
+            }
+
+            var payloadBytes = CommandPayload.ToBytes();
+            var lengthBytes = BitConverter.GetBytes((UInt32)payloadBytes.Length);
+
+            SHA256 sha256 = SHA256Managed.Create();
+            var checkSumBytes = sha256.ComputeHash(sha256.ComputeHash(payloadBytes)).Take(4);
+
+            return magicBytes
+                   .Concat(paddedCommandBytes)
+                   .Concat(lengthBytes)
+                   .Concat(checkSumBytes)
+                   .Concat(payloadBytes)
+                   .ToArray();
         }
     }
 
@@ -132,9 +189,9 @@ namespace PrimeNetwork
 
         public override byte[] ToBytes()
         {
-            var str_bytes = Encoding.ASCII.GetBytes(String);
-            var size_bytes = new IntegerPayload((UInt64)str_bytes.Length).ToBytes();
-            return size_bytes.Concat(str_bytes).ToArray();
+            var strBytes = Encoding.ASCII.GetBytes(String);
+            var sizeBytes = new IntegerPayload((UInt64)strBytes.Length).ToBytes();
+            return sizeBytes.Concat(strBytes).ToArray();
         }
     }
 
