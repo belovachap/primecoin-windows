@@ -10,7 +10,19 @@
         <TabControl HorizontalAlignment="Left" VerticalAlignment="Top" Height="399" Width="772" Margin="10,10,0,0">
             <TabItem x:Name="NetworkTabItem" Header="Network">
                 <Grid Background="#FFE5E5E5">
-                    <ListBox x:Name="ConnectionListBox" HorizontalAlignment="Left" Height="361" VerticalAlignment="Top" Width="400"/>
+                    <ListBox x:Name="ConnectionListBox" HorizontalAlignment="Left" Height="351" VerticalAlignment="Top" Width="376" Margin="10,10,0,0"/>
+                    <Label Content="From Address:" HorizontalAlignment="Left" Height="28" Margin="391,10,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right"/>
+                    <Label Content="To Address:" HorizontalAlignment="Left" Height="28" Margin="391,43,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right"/>
+                    <Label Content="Port:" HorizontalAlignment="Left" Height="28" Margin="391,76,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right"/>
+                    <Label Content="Services:" HorizontalAlignment="Left" Height="28" Margin="391,109,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right"/>
+                    <Label Content="Protocol Version:" HorizontalAlignment="Left" Height="28" Margin="391,142,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right"/>
+                    <Label Content="Starting Height:" HorizontalAlignment="Left" Height="28" Margin="391,175,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right"/>
+                    <TextBlock x:Name="ConnectionFromTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,15,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
+                    <TextBlock x:Name="ConnectionToTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,48,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
+                    <TextBlock x:Name="ConnectionPortTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,81,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
+                    <TextBlock x:Name="ConnectionServicesTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,114,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
+                    <TextBlock x:Name="ConnectionProtocolVersionTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,147,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
+                    <TextBlock x:Name="ConnectionStartingHeightTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,180,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="BlockchainTabItem" Header="Blockchain">

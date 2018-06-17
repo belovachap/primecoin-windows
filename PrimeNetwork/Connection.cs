@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.IO;
 
 namespace PrimeNetwork
 {
@@ -11,15 +12,11 @@ namespace PrimeNetwork
         public UInt16 Port { get; }
         public UInt64 Services { get; }
         public TcpClient Client { get; }
-        public NetworkStream Stream { get; }
+        public Stream Stream { get; }
         public Int32 ProtocolVersion { get; }
+        public UInt32 StartHeight { get; }
 
-        public Connection(
-            IPAddress from,
-            IPAddress to,
-            UInt16 port,
-            TcpClient client
-        )
+        public Connection(IPAddress from, IPAddress to, UInt16 port, TcpClient client)
         {
             From = from;
             To = to;
@@ -28,19 +25,23 @@ namespace PrimeNetwork
             Stream = Client.GetStream();
 
             SendVersionMessage();
-            //var verAck = ReceiveVerAckMessage();
-            //var version = ReceiveVersionMessage();
+
+            var version = ReceiveVersionMessage();
+            if (version.Version < 70001)
+            {
+                throw new Exception("Can only talk to protocol 70001 or better.");
+            }
+            ProtocolVersion = 70001;
+            Services = version.Services;
+            StartHeight = version.StartHeight;
+
+            SendVerAckMessage();
         }
 
         ~Connection()
         {
             Stream.Close();
             Client.Close();
-        }
-
-        void SendMessage(String command, Payload payload)
-        {
-
         }
 
         void SendMessage(MessagePayload message)
@@ -51,27 +52,33 @@ namespace PrimeNetwork
 
         MessagePayload ReceiveMessage()
         {
-            var buffer = new Byte[1024];
-            Int32 bytesRead = Stream.Read(buffer, 0, buffer.Length);
-            return new MessagePayload(buffer);
+            var framer = new MessageFramer();
+            return framer.NextMessage(Stream);           
         }
 
         void SendVersionMessage()
         {
-            var payload = GetVersionPayload();
-            SendMessage("version", payload);
+            UInt32 magic = 0xE7E5E7E4;
+            var message = new MessagePayload(magic, "version", GetVersionPayload());
+            SendMessage(message);
         }
 
-        //VerAckPayload ReceiveVerAckMessage()
-        //{
-        //    var message = new MessagePayload();
-        //    return (VerAckPayload)message.CommandPayload;
-        //}
+        void SendVerAckMessage()
+        {
+            UInt32 magic = 0xE7E5E7E4;
+            var message = new MessagePayload(magic, "verack", new VerAckPayload());
+            SendMessage(message);
+        }
 
-        //VersionPayload ReceiveVersionMessage()
-        //{
-        //    return new VersionPayload();
-        //}
+        VersionPayload ReceiveVersionMessage()
+        {
+            var message = ReceiveMessage();
+            if (message.Command != "version")
+            {
+                throw new Exception("Expected version message.");
+            }
+            return (VersionPayload)message.CommandPayload;
+        }
 
         public VersionPayload GetVersionPayload()
         {

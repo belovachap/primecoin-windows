@@ -26,12 +26,6 @@ namespace PrimeNetwork
             Magic = magic;
             Command = command;
             CommandPayload = commandPayload;
-            // Magic = magic;
-            // Command = command;
-            // Payload = payload;
-            // Calcuate Length and CheckSum! :D
-            //4   length uint32_t    Length of payload in number of bytes
-            //4   checksum uint32_t    First 4 bytes of sha256(sha256(payload))
         }
 
         public MessagePayload(byte[] bytes)
@@ -51,6 +45,11 @@ namespace PrimeNetwork
 
             var payload = remaining.Take((Int32)length).ToArray();
 
+            if (payload.Length != length)
+            {
+                throw new ArgumentException("payload was not of expected length!");
+            }
+
             SHA256 sha256 = SHA256Managed.Create();
             var computedCheckSum = sha256.ComputeHash(sha256.ComputeHash(payload)).Take(4);
 
@@ -61,12 +60,16 @@ namespace PrimeNetwork
 
             switch (Command)
             {
+                case "verack":
+                    CommandPayload = new VerAckPayload(payload);
+                    break;
+
                 case "version":
                     CommandPayload = new VersionPayload(payload);
                     break;
 
                 default:
-                    throw new ArgumentException("unkown command");
+                    throw new ArgumentException("unkown command!");
             }
 
         }
@@ -344,7 +347,12 @@ namespace PrimeNetwork
             remaining = remaining.Skip(UserAgent.ToBytes().Length);
 
             StartHeight = BitConverter.ToUInt32(remaining.ToArray(), 0);
-            Relay = BitConverter.ToBoolean(remaining.ToArray(), 4);
+            remaining = remaining.Skip(4);
+
+            if (remaining.Count() != 0)
+            {
+                Relay = BitConverter.ToBoolean(remaining.ToArray(), 0);
+            }      
         }
 
         public override byte[] ToBytes()

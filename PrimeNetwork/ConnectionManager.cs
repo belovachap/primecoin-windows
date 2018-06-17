@@ -35,6 +35,7 @@ namespace PrimeNetwork
 
         public void Start()
         {
+            Byte count = 0;
             foreach(IPAddress toAddress in DnsIPAddresses)
             {
                 var client = new TcpClient();
@@ -46,9 +47,17 @@ namespace PrimeNetwork
                 {
                     continue;
                 }
+
                 var connection = new Connection(MyAddress, toAddress, 9911, client);
                 OutboundConnections.Add(connection);
                 NewConnection(this, new NewConnectionEventArgs(connection));
+
+                // Just get eight connections for now.
+                count++;
+                if (count >= 8)
+                {
+                    break;
+                }
             }
         }
 
