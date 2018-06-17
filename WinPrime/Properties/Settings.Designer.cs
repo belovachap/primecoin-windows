@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace PrimeMine.Properties
+namespace WinPrime.Properties
 {
 
 

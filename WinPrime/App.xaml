@@ -1,7 +1,7 @@
-﻿<Application x:Class="PrimeMine.App"
+﻿<Application x:Class="WinPrime.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:PrimeMine"
+             xmlns:local="clr-namespace:WinPrime"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
          

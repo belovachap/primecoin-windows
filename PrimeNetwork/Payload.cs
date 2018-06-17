@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using System.Net;
+using System.Security.Cryptography;
 
 namespace PrimeNetwork
 {
@@ -13,30 +14,89 @@ namespace PrimeNetwork
     public class MessagePayload : Payload
     {
         public UInt32 Magic { get; }
-        public string Command { get; }
+        public String Command { get; }
         public Payload CommandPayload { get; }
 
-        public byte[] MessageBytes { get; }
-
-        public MessagePayload()
+        public MessagePayload(UInt32 magic, String command, Payload commandPayload)
         {
-            // Magic = magic;
-            // Command = command;
-            // Payload = payload;
-            // Calcuate Length and CheckSum! :D
-            //4   length uint32_t    Length of payload in number of bytes
-            //4   checksum uint32_t    First 4 bytes of sha256(sha256(payload))
+            if (Encoding.ASCII.GetBytes(command).Length > 12)
+            {
+                throw new ArgumentException("command must be 12 or fewer ascii bytes");
+            }
+            Magic = magic;
+            Command = command;
+            CommandPayload = commandPayload;
         }
 
         public MessagePayload(byte[] bytes)
         {
-            // Parse the passed bytes into fields.
+            Magic = BitConverter.ToUInt32(bytes, 0);
+            var remaining = bytes.Skip(4);
+
+            Command = Encoding.ASCII.GetString(remaining.Take(12).ToArray());
+            Command = Command.TrimEnd(new char[]{'\0'});
+            remaining = remaining.Skip(12);
+
+            var length = BitConverter.ToUInt32(remaining.ToArray(), 0);
+            remaining = remaining.Skip(4);
+
+            var checkSum = remaining.Take(4).ToArray();
+            remaining = remaining.Skip(4);
+
+            var payload = remaining.Take((Int32)length).ToArray();
+
+            if (payload.Length != length)
+            {
+                throw new ArgumentException("payload was not of expected length!");
+            }
+
+            SHA256 sha256 = SHA256Managed.Create();
+            var computedCheckSum = sha256.ComputeHash(sha256.ComputeHash(payload)).Take(4);
+
+            if (!checkSum.SequenceEqual(computedCheckSum.ToArray()))
+            {
+                throw new ArgumentException("checksum of payload does not match!");
+            }
+
+            switch (Command)
+            {
+                case "verack":
+                    CommandPayload = new VerAckPayload(payload);
+                    break;
+
+                case "version":
+                    CommandPayload = new VersionPayload(payload);
+                    break;
+
+                default:
+                    throw new ArgumentException("unkown command!");
+            }
+
         }
 
         public override byte[] ToBytes()
         {
-            // Serialize to bytes.
-            return new byte[1];
+            var magicBytes = BitConverter.GetBytes(Magic);
+
+            var paddedCommandBytes = new Byte[12];
+            var commandBytes = Encoding.ASCII.GetBytes(Command);
+            for (Int32 i = 0; i < commandBytes.Length; i++)
+            {
+                paddedCommandBytes[i] = commandBytes[i];
+            }
+
+            var payloadBytes = CommandPayload.ToBytes();
+            var lengthBytes = BitConverter.GetBytes((UInt32)payloadBytes.Length);
+
+            SHA256 sha256 = SHA256Managed.Create();
+            var checkSumBytes = sha256.ComputeHash(sha256.ComputeHash(payloadBytes)).Take(4);
+
+            return magicBytes
+                   .Concat(paddedCommandBytes)
+                   .Concat(lengthBytes)
+                   .Concat(checkSumBytes)
+                   .Concat(payloadBytes)
+                   .ToArray();
         }
     }
 
@@ -49,15 +109,33 @@ namespace PrimeNetwork
             Integer = integer;
         }
 
-        public IntegerPayload(byte[] bytes)
+        public IntegerPayload(Byte[] bytes)
         {
-            // Parse the passed bytes into fields.
+            if (bytes.Length == 0) {
+                throw new ArgumentException("IntegerPayload from bytes requires at least one byte.");
+            }
+
+            if (bytes[0] < 0xFD) {
+                Integer = (UInt64)bytes[0];
+            }
+            else if (bytes[0] == 0xFD)
+            {
+                Integer = (UInt64)BitConverter.ToUInt16(bytes, 1);
+            }
+            else if (bytes[0] == 0xFE)
+            {
+                Integer = (UInt64)BitConverter.ToUInt32(bytes, 1);
+            }
+            else
+            {
+                Integer = BitConverter.ToUInt64(bytes, 1);
+            }
         }
 
         public override byte[] ToBytes()
         {
-            byte[] magic_byte;
-            byte[] integer_bytes;
+            byte[] magicByte;
+            byte[] integerBytes;
 
             if (Integer < 0xFD)
             {
@@ -65,44 +143,58 @@ namespace PrimeNetwork
             }
             else if (Integer <= 0xFFFF)
             {
-                magic_byte = new byte[] { 0xFD };
-                integer_bytes = BitConverter.GetBytes((UInt16)Integer);
-                return magic_byte.Concat(integer_bytes).ToArray();
+                magicByte = new byte[] { 0xFD };
+                integerBytes = BitConverter.GetBytes((UInt16)Integer);
+                return magicByte.Concat(integerBytes).ToArray();
             }
             else if (Integer <= 0xFFFFFFFF)
             {
-                magic_byte = new byte[] { 0xFE };
-                integer_bytes = BitConverter.GetBytes((UInt32)Integer);
-                return magic_byte.Concat(integer_bytes).ToArray();
+                magicByte = new byte[] { 0xFE };
+                integerBytes = BitConverter.GetBytes((UInt32)Integer);
+                return magicByte.Concat(integerBytes).ToArray();
             }
             else
             {
-                magic_byte = new byte[] { 0xFF };
-                integer_bytes = BitConverter.GetBytes(Integer);
-                return magic_byte.Concat(integer_bytes).ToArray();
+                magicByte = new byte[] { 0xFF };
+                integerBytes = BitConverter.GetBytes(Integer);
+                return magicByte.Concat(integerBytes).ToArray();
             }
         }
     }
 
     public class StringPayload : Payload
     {
-        public string String { get; }
+        public String String { get; }
 
-        public StringPayload(string str)
+        public StringPayload(String str)
         {
             String = str;
         }
 
-        public StringPayload(byte[] bytes)
+        public StringPayload(Byte[] bytes)
         {
-            // Parse the passed bytes into fields.
+            if (bytes.Length == 0)
+            {
+                throw new ArgumentException("StringPayload from bytes requires at least one byte.");
+            }
+
+            if (bytes[0] == 0x00)
+            {
+                String = "";
+            }
+            else
+            {
+                var size = new IntegerPayload(bytes);
+                var offset = size.ToBytes().Length;
+                String = Encoding.ASCII.GetString(bytes, offset, (Int32)size.Integer);
+            }
         }
 
         public override byte[] ToBytes()
         {
-            var str_bytes = Encoding.ASCII.GetBytes(String);
-            var size_bytes = new IntegerPayload((UInt64)str_bytes.Length).ToBytes();
-            return size_bytes.Concat(str_bytes).ToArray();
+            var strBytes = Encoding.ASCII.GetBytes(String);
+            var sizeBytes = new IntegerPayload((UInt64)strBytes.Length).ToBytes();
+            return sizeBytes.Concat(strBytes).ToArray();
         }
     }
 
@@ -114,13 +206,13 @@ namespace PrimeNetwork
         public UInt16 Port { get; }
 
         public IPAddressPayload(
-            DateTime time_stamp,
+            DateTime timeStamp,
             UInt64 services,
             IPAddress address,
             UInt16 port
         )
         {
-            TimeStamp = time_stamp;
+            TimeStamp = timeStamp;
             Services = services;
             Address = address;
             Port = port;
@@ -128,21 +220,42 @@ namespace PrimeNetwork
 
         public IPAddressPayload(byte[] bytes)
         {
-            // Parse the passed bytes into fields.
+            TimeStamp = new DateTime(BitConverter.ToUInt32(bytes, 0));
+            Services = BitConverter.ToUInt64(bytes, 4);
+
+            var ipBytes = bytes.Skip(12).Take(16).ToArray();
+            var paddingBytes = new byte[] {
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0xFF, 0xFF,
+            };
+            // Check for an IPv4 address.
+            if (ipBytes.Take(12).SequenceEqual(paddingBytes))
+            {
+                Address = new IPAddress(ipBytes.Skip(12).ToArray());
+            }
+            else
+            {
+                Address = new IPAddress(ipBytes);
+            }
+
+            // Port sent in "Network Order", reverse the bytes for BitConverter.
+            var portBytes = new byte[] { bytes[29], bytes[28] };
+            Port = BitConverter.ToUInt16(portBytes, 0);
         }
 
         public override byte[] ToBytes()
         {
-            byte[] time_stamp_bytes = BitConverter.GetBytes((UInt32)TimeStamp.Ticks);
-            byte[] services_bytes = BitConverter.GetBytes(Services);
-            byte[] address_bytes = IPAddressToBytes(Address);
-            byte[] port_bytes = BitConverter.GetBytes(Port);
-            Array.Reverse(port_bytes); // Sent in network byte order
+            byte[] timeStampBytes = BitConverter.GetBytes((UInt32)TimeStamp.Ticks);
+            byte[] servicesBytes = BitConverter.GetBytes(Services);
+            byte[] addressBytes = IPAddressToBytes(Address);
+            byte[] portBytes = BitConverter.GetBytes(Port);
+            Array.Reverse(portBytes); // Sent in network byte order
             
-            return time_stamp_bytes
-                   .Concat(services_bytes)
-                   .Concat(address_bytes)
-                   .Concat(port_bytes)
+            return timeStampBytes
+                   .Concat(servicesBytes)
+                   .Concat(addressBytes)
+                   .Concat(portBytes)
                    .ToArray();
         }
 
@@ -176,65 +289,110 @@ namespace PrimeNetwork
         public IPAddressPayload AddressTo { get; }
         public IPAddressPayload AddressFrom { get; }
         public UInt64 Nonce { get; }
-        public String UserAgent { get; }
+        public StringPayload UserAgent { get; }
         public UInt32 StartHeight { get; }
         public Boolean Relay { get; }
-
-        // Just adding this empty constructor to not have to
-        // fill in some stubs... delete when they're finnished ;)
-        public VersionPayload() { }
 
         public VersionPayload(
             Int32 version,
             UInt64 services,
-            DateTime time_stamp,
-            IPAddressPayload address_to,
-            IPAddressPayload address_from,
+            DateTime timeStamp,
+            IPAddressPayload addressTo,
+            IPAddressPayload addressFrom,
             UInt64 nonce,
-            String user_agent,
-            UInt32 start_height,
+            StringPayload userAgent,
+            UInt32 startHeight,
             Boolean relay
         )
         {
             Version = version;
             Services = services;
-            TimeStamp = time_stamp;
-            AddressTo = address_to;
-            AddressFrom = address_from;
+            TimeStamp = timeStamp;
+            AddressTo = addressTo;
+            AddressFrom = addressFrom;
             Nonce = nonce;
-            UserAgent = user_agent;
-            StartHeight = start_height;
+            UserAgent = userAgent;
+            StartHeight = startHeight;
             Relay = relay;
         }
 
         public VersionPayload(byte[] bytes)
         {
-            // Parse the passed bytes into fields.
+            Version = BitConverter.ToInt32(bytes, 0);
+            Services = BitConverter.ToUInt64(bytes, 4);
+            TimeStamp = new DateTime(BitConverter.ToInt64(bytes, 12));
+            var remaining = bytes.Skip(20);
+
+            // AddressTo
+            var missingTimeStampBytes = new byte[] {
+                0x00, 0x00, 0x00, 0x00,
+            };
+            var addressToBytes = missingTimeStampBytes
+                                 .Concat(remaining.Take(26))
+                                 .ToArray();
+            AddressTo = new IPAddressPayload(addressToBytes);
+            remaining = remaining.Skip(26);
+
+            // AddressFrom
+            var addressFromBytes = missingTimeStampBytes
+                                   .Concat(remaining.Take(26))
+                                   .ToArray();
+            AddressFrom = new IPAddressPayload(addressFromBytes);
+            remaining = remaining.Skip(26);
+
+            Nonce = BitConverter.ToUInt64(remaining.ToArray(), 0);
+            remaining = remaining.Skip(8);
+
+            UserAgent = new StringPayload(remaining.ToArray());
+            remaining = remaining.Skip(UserAgent.ToBytes().Length);
+
+            StartHeight = BitConverter.ToUInt32(remaining.ToArray(), 0);
+            remaining = remaining.Skip(4);
+
+            if (remaining.Count() != 0)
+            {
+                Relay = BitConverter.ToBoolean(remaining.ToArray(), 0);
+            }      
         }
 
         public override byte[] ToBytes()
         {
-            // Serialize to bytes.
-            return new byte[1];
+            var versionBytes = BitConverter.GetBytes(Version);
+            var servicesBytes = BitConverter.GetBytes(Services);
+            var timeStampBytes = BitConverter.GetBytes(TimeStamp.Ticks);
+
+            // We leave out the IPAddress TimeStamp in the Version Message.
+            var addressToBytes = AddressTo.ToBytes().Skip(4).ToArray();
+            var addressFromBytes = AddressFrom.ToBytes().Skip(4).ToArray();
+
+            var nonceBytes = BitConverter.GetBytes(Nonce);
+            var userAgentBytes = UserAgent.ToBytes();
+            var startHeightBytes = BitConverter.GetBytes(StartHeight);
+            var relayBytes = BitConverter.GetBytes(Relay);
+            
+            return versionBytes
+                   .Concat(servicesBytes)
+                   .Concat(timeStampBytes)
+                   .Concat(addressToBytes)
+                   .Concat(addressFromBytes)
+                   .Concat(nonceBytes)
+                   .Concat(userAgentBytes)
+                   .Concat(startHeightBytes)
+                   .Concat(relayBytes)
+                   .ToArray();
         }
     }
 
     public class VerAckPayload : Payload
     {
 
-        // Just adding this empty constructor to not have to
-        // fill in some stubs... delete when they're finnished ;)
         public VerAckPayload() { }
 
-        public VerAckPayload(byte[] bytes)
-        {
-            // Parse the passed bytes into fields.
-        }
+        public VerAckPayload(byte[] bytes) { }
 
         public override byte[] ToBytes()
         {
-            // Serialize to bytes.
-            return new byte[0];
+            return new byte[] { };
         }
     }
 }
