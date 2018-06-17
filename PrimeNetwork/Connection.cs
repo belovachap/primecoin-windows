@@ -84,7 +84,7 @@ namespace PrimeNetwork
         {
             var to = new IPAddressPayload(DateTime.UtcNow, 1, To, Port);
             var from = new IPAddressPayload(DateTime.UtcNow, 0, From, Port);
-            var userAgent = new StringPayload("/WinPrime-1.0.0/");
+            var userAgent = new StringPayload("/WinPrime-0.1.0/");
             return new VersionPayload(70001, 1, DateTime.UtcNow, to, from, 0, userAgent, 0, true);
         }
     }
