@@ -28,6 +28,10 @@ namespace WinPrime
 
             ConnectionListBox.SelectionChanged +=
                 new SelectionChangedEventHandler(HandleConnectionSelectionChanged);
+            ConnectionMessagesOutListBox.SelectionChanged +=
+                new SelectionChangedEventHandler(HandleMessagesOutSelectionChanged);
+            ConnectionMessagesInListBox.SelectionChanged +=
+                new SelectionChangedEventHandler(HandleMessagesInSelectionChanged);
         }
 
         void HandleNewConnection(object sender, NewConnectionEventArgs a)
@@ -46,6 +50,8 @@ namespace WinPrime
                 ConnectionServicesTextBlock.Text = "";
                 ConnectionProtocolVersionTextBlock.Text = "";
                 ConnectionStartingHeightTextBlock.Text = "";
+                ConnectionMessagesOutListBox.Items.Clear();
+                ConnectionMessagesInListBox.Items.Clear();
             }
             else
             {
@@ -55,6 +61,36 @@ namespace WinPrime
                 ConnectionServicesTextBlock.Text = connection.Services.ToString();
                 ConnectionProtocolVersionTextBlock.Text = connection.ProtocolVersion.ToString();
                 ConnectionStartingHeightTextBlock.Text = connection.StartHeight.ToString();
+                ConnectionMessagesOutListBox.ItemsSource = connection.SentMessages;
+                ConnectionMessagesInListBox.ItemsSource = connection.ReceivedMessages;
+            }
+        }
+
+        void HandleMessagesOutSelectionChanged(object sender, SelectionChangedEventArgs a)
+        {
+            var message = (MessagePayload)ConnectionMessagesOutListBox.SelectedItem;
+            if (message != null)
+            {
+                var messageString = String.Format(
+                    "Command: {0}\nBytes: {1}",
+                    message.Command,
+                    message.CommandPayload
+                );
+                MessageBox.Show(messageString);
+            }
+        }
+
+        void HandleMessagesInSelectionChanged(object sender, SelectionChangedEventArgs a)
+        {
+            var message = (MessagePayload)ConnectionMessagesInListBox.SelectedItem;
+            if (message != null)
+            {
+                var messageString = String.Format(
+                    "Command: {0}\nBytes: {1}",
+                    message.Command,
+                    message.CommandPayload
+                );
+                MessageBox.Show(messageString);
             }
         }
     }

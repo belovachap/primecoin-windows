@@ -2,30 +2,54 @@
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
 
 namespace PrimeNetwork
 {
+    public class NewMessageEventArgs : EventArgs
+    {
+        public MessagePayload Message;
+
+        public NewMessageEventArgs(MessagePayload message)
+        {
+            Message = message;
+        }
+    }
+
     public class Connection
     {
+        public event EventHandler<NewMessageEventArgs> NewMessage;
+
         public IPAddress From { get; }
         public IPAddress To { get; }
         public UInt16 Port { get; }
         public UInt64 Services { get; }
-        public TcpClient Client { get; }
-        public Stream Stream { get; }
         public Int32 ProtocolVersion { get; }
         public UInt32 StartHeight { get; }
+
+        public List<MessagePayload> SentMessages { get; }
+        public List<MessagePayload> ReceivedMessages { get; }
+
+        TcpClient Client;
+        Stream Stream;
+        Object SendLock = new Object();
+        Object ReceiveLock = new Object();
+        CancellationTokenSource CancelReceivingMessages;
 
         public Connection(IPAddress from, IPAddress to, UInt16 port, TcpClient client)
         {
             From = from;
             To = to;
             Port = port;
+            SentMessages = new List<MessagePayload>();
+            ReceivedMessages = new List<MessagePayload>();
             Client = client;
             Stream = Client.GetStream();
 
             SendVersionMessage();
-
             var version = ReceiveVersionMessage();
             if (version.Version < 70001)
             {
@@ -34,26 +58,58 @@ namespace PrimeNetwork
             ProtocolVersion = 70001;
             Services = version.Services;
             StartHeight = version.StartHeight;
-
             SendVerAckMessage();
+            ReceiveVerAckMessage();
         }
 
         ~Connection()
         {
+            if (CancelReceivingMessages != null)
+            {
+                CancelReceivingMessages.Cancel();
+                CancelReceivingMessages.Dispose();
+            }
             Stream.Close();
             Client.Close();
         }
 
         void SendMessage(MessagePayload message)
         {
-            Byte[] data = message.ToBytes();
-            Stream.Write(data, 0, data.Length);
+            lock(SendLock)
+            {
+                Byte[] data = message.ToBytes();
+                Stream.Write(data, 0, data.Length);
+                SentMessages.Add(message);
+            }
+        }
+
+        public void StartReceivingMessages()
+        {
+            CancelReceivingMessages = new CancellationTokenSource();
+            Task.Run(
+                () => {
+                    lock(ReceiveLock)
+                    {
+                        while(true)
+                        {
+                            var message = ReceiveMessage();
+                            NewMessage?.Invoke(this, new NewMessageEventArgs(message));
+                        }
+                    }
+                },
+                CancelReceivingMessages.Token
+            );
         }
 
         MessagePayload ReceiveMessage()
         {
-            var framer = new MessageFramer();
-            return framer.NextMessage(Stream);           
+            lock (ReceiveLock)
+            {
+                var framer = new MessageFramer();
+                var message = framer.NextMessage(Stream);
+                ReceivedMessages.Add(message);
+                return message;
+            }
         }
 
         void SendVersionMessage()
@@ -78,6 +134,16 @@ namespace PrimeNetwork
                 throw new Exception("Expected version message.");
             }
             return (VersionPayload)message.CommandPayload;
+        }
+
+        VerAckPayload ReceiveVerAckMessage()
+        {
+            var message = ReceiveMessage();
+            if (message.Command != "verack")
+            {
+                throw new Exception("Expected verack message.");
+            }
+            return (VerAckPayload)message.CommandPayload;
         }
 
         public VersionPayload GetVersionPayload()

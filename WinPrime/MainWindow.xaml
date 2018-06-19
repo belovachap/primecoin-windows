@@ -23,6 +23,10 @@
                     <TextBlock x:Name="ConnectionServicesTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,114,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
                     <TextBlock x:Name="ConnectionProtocolVersionTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,147,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
                     <TextBlock x:Name="ConnectionStartingHeightTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,180,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
+                    <Label Content="Messages Out:" HorizontalAlignment="Left" Height="28" Margin="391,213,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right"/>
+                    <Label Content="Messages In:" HorizontalAlignment="Left" Height="28" Margin="391,290,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right"/>
+                    <ListBox x:Name="ConnectionMessagesOutListBox" HorizontalAlignment="Left" Height="72" Margin="502,213,0,0" VerticalAlignment="Top" Width="254"/>
+                    <ListBox x:Name="ConnectionMessagesInListBox" HorizontalAlignment="Left" Height="71" Margin="502,290,0,0" VerticalAlignment="Top" Width="254"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="BlockchainTabItem" Header="Blockchain">

@@ -69,9 +69,9 @@ namespace PrimeNetwork
                     break;
 
                 default:
-                    throw new ArgumentException("unkown command!");
+                    CommandPayload = new UnknownPayload(payload);
+                    break;
             }
-
         }
 
         public override byte[] ToBytes()
@@ -393,6 +393,21 @@ namespace PrimeNetwork
         public override byte[] ToBytes()
         {
             return new byte[] { };
+        }
+    }
+
+    public class UnknownPayload : Payload
+    {
+        public Byte[] Bytes { get; }
+
+        public UnknownPayload(Byte[] bytes)
+        {
+            Bytes = bytes;
+        }
+
+        public override byte[] ToBytes()
+        {
+            return Bytes;
         }
     }
 }

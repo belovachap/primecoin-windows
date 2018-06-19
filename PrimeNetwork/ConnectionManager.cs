@@ -51,6 +51,7 @@ namespace PrimeNetwork
                 var connection = new Connection(MyAddress, toAddress, 9911, client);
                 OutboundConnections.Add(connection);
                 NewConnection(this, new NewConnectionEventArgs(connection));
+                connection.StartReceivingMessages();
 
                 // Just get eight connections for now.
                 count++;
