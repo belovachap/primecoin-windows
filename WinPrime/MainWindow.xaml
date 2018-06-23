@@ -19,18 +19,30 @@
                     <Label Content="Starting Height:" HorizontalAlignment="Left" Height="28" Margin="391,175,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right"/>
                     <TextBlock x:Name="ConnectionFromTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,15,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
                     <TextBlock x:Name="ConnectionToTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,48,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
-                    <TextBlock x:Name="ConnectionPortTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,81,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
-                    <TextBlock x:Name="ConnectionServicesTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,114,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
-                    <TextBlock x:Name="ConnectionProtocolVersionTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,147,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
-                    <TextBlock x:Name="ConnectionStartingHeightTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,180,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"/>
+                    <TextBlock x:Name="ConnectionPortTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,81,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
+                    <TextBlock x:Name="ConnectionServicesTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,114,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
+                    <TextBlock x:Name="ConnectionProtocolVersionTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,147,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
+                    <TextBlock x:Name="ConnectionStartingHeightTextBlock" HorizontalAlignment="Left" Height="28" Margin="502,180,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
                     <Label Content="Messages Out:" HorizontalAlignment="Left" Height="28" Margin="391,213,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right"/>
                     <Label Content="Messages In:" HorizontalAlignment="Left" Height="28" Margin="391,290,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right"/>
                     <ListBox x:Name="ConnectionMessagesOutListBox" HorizontalAlignment="Left" Height="72" Margin="502,213,0,0" VerticalAlignment="Top" Width="254"/>
                     <ListBox x:Name="ConnectionMessagesInListBox" HorizontalAlignment="Left" Height="71" Margin="502,290,0,0" VerticalAlignment="Top" Width="254"/>
+                    <Label Content="Alive:" HorizontalAlignment="Left" Height="28" Margin="603,76,0,0" VerticalAlignment="Top" Width="52" HorizontalContentAlignment="Right"/>
+                    <TextBlock x:Name="ConnectionAliveTextBlock" HorizontalAlignment="Left" Height="28" Margin="660,81,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
+                    <TextBlock x:Name="ConnectionMessagesOutCountTextBlock" HorizontalAlignment="Left" Height="28" Margin="401,241,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96" TextAlignment="Right"/>
+                    <TextBlock x:Name="ConnectionMessagesInCountTextBlock" HorizontalAlignment="Left" Height="28" Margin="401,318,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96" TextAlignment="Right"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="BlockchainTabItem" Header="Blockchain">
-                <Grid Background="#FFE5E5E5"/>
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="9*"/>
+                        <ColumnDefinition Width="374*"/>
+                    </Grid.ColumnDefinitions>
+                    <ListBox x:Name="BlockchainListBox" HorizontalAlignment="Left" Height="351" VerticalAlignment="Top" Width="376" Margin="10,10,0,0" Grid.ColumnSpan="2"/>
+                    <Label Content="Best Block:" HorizontalAlignment="Left" Height="28" Margin="373,10,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="1"/>
+                    <TextBlock x:Name="BestBlockTextBlock" HorizontalAlignment="Left" Height="28" Margin="484,15,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="1"/>
+                </Grid>
             </TabItem>
             <TabItem x:Name="MineTabItem" Header="Mine"/>
             <TabItem x:Name="WalletTabItem" Header="Wallet"/>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
@@ -60,6 +61,14 @@ namespace PrimeNetwork
 
             switch (Command)
             {
+                case "block":
+                    CommandPayload = new BlockPayload(payload);
+                    break;
+
+                case "inv":
+                    CommandPayload = new InvPayload(payload);
+                    break;
+
                 case "verack":
                     CommandPayload = new VerAckPayload(payload);
                     break;
@@ -251,7 +260,7 @@ namespace PrimeNetwork
             byte[] addressBytes = IPAddressToBytes(Address);
             byte[] portBytes = BitConverter.GetBytes(Port);
             Array.Reverse(portBytes); // Sent in network byte order
-            
+
             return timeStampBytes
                    .Concat(servicesBytes)
                    .Concat(addressBytes)
@@ -352,7 +361,7 @@ namespace PrimeNetwork
             if (remaining.Count() != 0)
             {
                 Relay = BitConverter.ToBoolean(remaining.ToArray(), 0);
-            }      
+            }
         }
 
         public override byte[] ToBytes()
@@ -369,7 +378,7 @@ namespace PrimeNetwork
             var userAgentBytes = UserAgent.ToBytes();
             var startHeightBytes = BitConverter.GetBytes(StartHeight);
             var relayBytes = BitConverter.GetBytes(Relay);
-            
+
             return versionBytes
                    .Concat(servicesBytes)
                    .Concat(timeStampBytes)
@@ -385,7 +394,6 @@ namespace PrimeNetwork
 
     public class VerAckPayload : Payload
     {
-
         public VerAckPayload() { }
 
         public VerAckPayload(byte[] bytes) { }
@@ -408,6 +416,108 @@ namespace PrimeNetwork
         public override byte[] ToBytes()
         {
             return Bytes;
+        }
+    }
+
+    public enum InvEntryType {
+        ERROR,
+        MSG_TX,
+        MSG_BLOCK,
+        MSG_FILTERED_BLOCK,
+        MSG_CMPCT_BLOCK
+    };
+   
+    public class InvEntryPayload: Payload
+    {
+        public InvEntryType Type { get; }
+        public Byte[] Hash { get; }
+
+        Dictionary<UInt32, InvEntryType> InvEntryValueToType = new Dictionary<UInt32, InvEntryType> {
+            { 0, InvEntryType.ERROR },
+            { 1, InvEntryType.MSG_TX },
+            { 2, InvEntryType.MSG_BLOCK },
+            { 3, InvEntryType.MSG_FILTERED_BLOCK },
+            { 4, InvEntryType.MSG_CMPCT_BLOCK },
+        };
+        Dictionary<InvEntryType, UInt32> TypeToInvEntryValue = new Dictionary<InvEntryType, UInt32> {
+            { InvEntryType.ERROR, 0 },
+            { InvEntryType.MSG_TX, 1 },
+            { InvEntryType.MSG_BLOCK, 2 },
+            { InvEntryType.MSG_FILTERED_BLOCK, 3 },
+            { InvEntryType.MSG_CMPCT_BLOCK, 4 },
+        };
+
+        public InvEntryPayload(InvEntryType type, Byte[] hash)
+        {
+            Type = type;
+            Hash = hash;
+        }
+
+        public InvEntryPayload(Byte[] bytes)
+        {
+            var invEntryValue = BitConverter.ToUInt32(bytes, 0);
+            Type = InvEntryValueToType[invEntryValue];
+            Hash = bytes.Skip(4).Take(32).ToArray();
+        }
+
+        public override Byte[] ToBytes()
+        {
+            var typeBytes = BitConverter.GetBytes(TypeToInvEntryValue[Type]);
+            return typeBytes.Concat(Hash).ToArray();
+        }
+    }
+
+    public class InvPayload : Payload
+    {
+        public List<InvEntryPayload> Entries { get; }
+        
+        public InvPayload(List<InvEntryPayload> entries)
+        {
+            Entries = entries;
+        }
+
+        public InvPayload(byte[] bytes)
+        {
+            var count = new IntegerPayload(bytes);
+            var remaining = bytes.Skip(count.ToBytes().Length);
+
+            Entries = new List<InvEntryPayload>();
+            for (UInt64 i = 0; i < count.Integer; i++)
+            {
+                var invEntry = new InvEntryPayload(remaining.ToArray());
+                Entries.Add(invEntry);
+                remaining = remaining.Skip(invEntry.ToBytes().Length);
+            }
+        }
+
+        public override Byte[] ToBytes()
+        {
+            var count = new IntegerPayload((UInt64)Entries.Count);
+            var bytes = count.ToBytes().AsEnumerable();
+            
+            for (Int32 i = 0; i < Entries.Count; i++)
+            {
+                bytes = bytes.Concat(Entries[i].ToBytes());
+            }
+
+            return bytes.ToArray();
+        }
+    }
+
+    public class BlockPayload : Payload
+    {
+
+        public BlockPayload()
+        {
+        }
+
+        public BlockPayload(byte[] bytes)
+        {
+        }
+
+        public override byte[] ToBytes()
+        {
+            return new Byte[0];
         }
     }
 }

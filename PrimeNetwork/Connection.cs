@@ -9,6 +9,13 @@ using System.Collections.Generic;
 
 namespace PrimeNetwork
 {
+
+    public class ConnectionDeadException : Exception
+    {
+        public ConnectionDeadException() { }
+        public ConnectionDeadException(string message) : base(message) { }
+    }
+
     public class NewMessageEventArgs : EventArgs
     {
         public MessagePayload Message;
@@ -29,12 +36,15 @@ namespace PrimeNetwork
         public UInt64 Services { get; }
         public Int32 ProtocolVersion { get; }
         public UInt32 StartHeight { get; }
+        public Boolean Alive;
+        public ConnectionDeadException DeathException;
 
         public List<MessagePayload> SentMessages { get; }
         public List<MessagePayload> ReceivedMessages { get; }
 
         TcpClient Client;
         Stream Stream;
+        Object AliveLock = new Object();
         Object SendLock = new Object();
         Object ReceiveLock = new Object();
         CancellationTokenSource CancelReceivingMessages;
@@ -48,6 +58,7 @@ namespace PrimeNetwork
             ReceivedMessages = new List<MessagePayload>();
             Client = client;
             Stream = Client.GetStream();
+            Alive = true;
 
             SendVersionMessage();
             var version = ReceiveVersionMessage();
@@ -73,13 +84,70 @@ namespace PrimeNetwork
             Client.Close();
         }
 
-        void SendMessage(MessagePayload message)
+        public void SendMessage(MessagePayload message)
         {
-            lock(SendLock)
+            lock (SendLock)
             {
-                Byte[] data = message.ToBytes();
-                Stream.Write(data, 0, data.Length);
-                SentMessages.Add(message);
+                lock (AliveLock)
+                {
+                    if (DeathException != null)
+                    {
+                        throw DeathException;
+                    }
+                }
+
+                try
+                {
+                    Byte[] data = message.ToBytes();
+                    Stream.Write(data, 0, data.Length);
+                    SentMessages.Add(message);
+                }
+                catch
+                {
+                    lock(AliveLock)
+                    {
+                        if(DeathException == null)
+                        {
+                            Alive = false;
+                            DeathException = new ConnectionDeadException("SendMessage threw exception.");
+                        }
+                    }
+                    throw DeathException;
+                }
+            }
+        }
+
+        MessagePayload ReceiveMessage()
+        {
+            lock (ReceiveLock)
+            {
+                lock (AliveLock)
+                {
+                    if (DeathException != null)
+                    {
+                        throw DeathException;
+                    }
+                }
+
+                try
+                {
+                    var framer = new MessageFramer();
+                    var message = framer.NextMessage(Stream);
+                    ReceivedMessages.Add(message);
+                    return message;
+                }
+                catch
+                {
+                    lock (AliveLock)
+                    {
+                        if (DeathException == null)
+                        {
+                            Alive = false;
+                            DeathException = new ConnectionDeadException("ReceiveMessage threw exception.");
+                        }
+                    }
+                    throw DeathException;
+                }
             }
         }
 
@@ -92,24 +160,20 @@ namespace PrimeNetwork
                     {
                         while(true)
                         {
-                            var message = ReceiveMessage();
-                            NewMessage?.Invoke(this, new NewMessageEventArgs(message));
+                            try
+                            {
+                                var message = ReceiveMessage();
+                                NewMessage?.Invoke(this, new NewMessageEventArgs(message));
+                            }
+                            catch
+                            {
+                                break;
+                            }
                         }
                     }
                 },
                 CancelReceivingMessages.Token
             );
-        }
-
-        MessagePayload ReceiveMessage()
-        {
-            lock (ReceiveLock)
-            {
-                var framer = new MessageFramer();
-                var message = framer.NextMessage(Stream);
-                ReceivedMessages.Add(message);
-                return message;
-            }
         }
 
         void SendVersionMessage()

@@ -94,6 +94,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PrimeBlockchain\PrimeBlockchain.csproj">
+      <Project>{62bbd29d-7847-4097-a84f-bf1da96dcdf4}</Project>
+      <Name>PrimeBlockchain</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PrimeNetwork\PrimeNetwork.csproj">
       <Project>{3905a3ea-5cc9-4fc8-ba8c-df4b6f5baa3e}</Project>
       <Name>PrimeNetwork</Name>
