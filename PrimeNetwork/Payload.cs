@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using System.Security.Cryptography;
+using System.Numerics;
+
 
 namespace PrimeNetwork
 {
@@ -35,7 +37,7 @@ namespace PrimeNetwork
             var remaining = bytes.Skip(4);
 
             Command = Encoding.ASCII.GetString(remaining.Take(12).ToArray());
-            Command = Command.TrimEnd(new char[]{'\0'});
+            Command = Command.TrimEnd(new char[] { '\0' });
             remaining = remaining.Skip(12);
 
             var length = BitConverter.ToUInt32(remaining.ToArray(), 0);
@@ -426,8 +428,8 @@ namespace PrimeNetwork
         MSG_FILTERED_BLOCK,
         MSG_CMPCT_BLOCK
     };
-   
-    public class InvEntryPayload: Payload
+
+    public class InvEntryPayload : Payload
     {
         public InvEntryType Type { get; }
         public Byte[] Hash { get; }
@@ -470,7 +472,7 @@ namespace PrimeNetwork
     public class InvPayload : Payload
     {
         public List<InvEntryPayload> Entries { get; }
-        
+
         public InvPayload(List<InvEntryPayload> entries)
         {
             Entries = entries;
@@ -494,7 +496,7 @@ namespace PrimeNetwork
         {
             var count = new IntegerPayload((UInt64)Entries.Count);
             var bytes = count.ToBytes().AsEnumerable();
-            
+
             for (Int32 i = 0; i < Entries.Count; i++)
             {
                 bytes = bytes.Concat(Entries[i].ToBytes());
@@ -504,20 +506,318 @@ namespace PrimeNetwork
         }
     }
 
-    public class BlockPayload : Payload
+    public class TransactionPayload : Payload
     {
 
-        public BlockPayload()
+        public Int32 Version { get; }
+        public List<TxInputPayload> TxInputs;
+        public List<TxOutputPayload> TxOutputs;
+        public UInt32 LockTime;
+
+        public TransactionPayload(
+            Int32 version,
+            List<TxInputPayload> txInputs,
+            List<TxOutputPayload> txOutputs,
+            UInt32 lockTime
+        )
         {
+            Version = version;
+            TxInputs = txInputs;
+            TxOutputs = txOutputs;
+            LockTime = lockTime;
         }
 
-        public BlockPayload(byte[] bytes)
+        public TransactionPayload(byte[] bytes)
         {
+            Version = BitConverter.ToInt32(bytes, 0);
+            var remaining = bytes.Skip(4);
+
+            var txInCount = new IntegerPayload(remaining.ToArray());
+            remaining = remaining.Skip(txInCount.ToBytes().Length);
+
+            TxInputs = new List<TxInputPayload>();
+            for (UInt64 i = 0; i < txInCount.Integer; i++)
+            {
+                var txInput = new TxInputPayload(remaining.ToArray());
+                remaining = remaining.Skip(txInput.ToBytes().Length);
+                TxInputs.Add(txInput);
+            }
+
+            var txOutCount = new IntegerPayload(remaining.ToArray());
+            remaining = remaining.Skip(txOutCount.ToBytes().Length);
+
+            TxOutputs = new List<TxOutputPayload>();
+            for (UInt64 i = 0; i < txOutCount.Integer; i++)
+            {
+                var txOutput = new TxOutputPayload(remaining.ToArray());
+                remaining = remaining.Skip(txOutput.ToBytes().Length);
+                TxOutputs.Add(txOutput);
+            }
+
+            LockTime = BitConverter.ToUInt32(remaining.ToArray(), 0);
         }
 
         public override byte[] ToBytes()
         {
-            return new Byte[0];
+            var bytes = new Byte[0].AsEnumerable();
+
+            bytes = bytes.Concat(BitConverter.GetBytes(Version));
+
+            var txInCount = new IntegerPayload((UInt64)TxInputs.Count);
+            bytes = bytes.Concat(txInCount.ToBytes());
+            foreach (TxInputPayload input in TxInputs)
+            {
+                bytes = bytes.Concat(input.ToBytes());
+            }
+
+            var txOutCount = new IntegerPayload((UInt64)TxOutputs.Count);
+            bytes = bytes.Concat(txOutCount.ToBytes());
+            foreach (TxOutputPayload output in TxOutputs)
+            {
+                bytes = bytes.Concat(output.ToBytes());
+            }
+
+            bytes = bytes.Concat(BitConverter.GetBytes(LockTime));
+
+            return bytes.ToArray();
+        }
+    }
+
+    // Pulling out some functions for easier testing and future moving around.
+    public static class Algorithms {
+
+        public static Byte[] MerkleRoot(List<TransactionPayload> txs)
+        {
+            SHA256 sha256 = SHA256Managed.Create();
+
+            var hashes = new List<Byte[]>();
+            foreach (TransactionPayload tx in txs)
+            {
+                hashes.Add(sha256.ComputeHash(sha256.ComputeHash(tx.ToBytes())));
+            }
+
+            while (hashes.Count > 1)
+            {
+                // Ensure that the "row" of the merkle tree has an even number of elements.
+                if (hashes.Count % 2 != 0)
+                {
+                    hashes.Add(hashes[hashes.Count - 1]);
+                }
+                var combinedHashes = new List<Byte[]>();
+                for (Int32 i = 0; i < hashes.Count; i += 2)
+                {
+                    var combined = hashes[i].Concat(hashes[i + 1]).ToArray();
+                    combinedHashes.Add(sha256.ComputeHash(sha256.ComputeHash(combined)));
+                }
+                hashes = combinedHashes;
+            }
+
+            return hashes[0];
+        }
+    }
+
+    public class BlockPayload : Payload
+    {
+
+        public Int32 Version { get; }
+        public Byte[] PreviousBlockHash { get; }
+        public UInt32 TimeStamp { get; }
+        public UInt32 Bits { get; }
+        public UInt32 Nonce { get; }
+        public BigInteger PrimeChainMultiplier { get; }
+        public List<TransactionPayload> Transactions { get; }
+        public Byte[] MerkleRoot { get { return Algorithms.MerkleRoot(Transactions); } }
+
+        public BlockPayload(
+            Int32 version,
+            Byte[] previousBlockHash,
+            UInt32 timeStamp,
+            UInt32 bits,
+            UInt32 nonce,
+            BigInteger primeChainMultiplier,
+            List<TransactionPayload> txs
+        )
+        {
+            Version = version;
+            PreviousBlockHash = previousBlockHash;
+            TimeStamp = timeStamp;
+            Bits = bits;
+            Nonce = nonce;
+            PrimeChainMultiplier = primeChainMultiplier;
+            Transactions = txs;
+        }
+
+        public BlockPayload(byte[] bytes)
+        {
+            Version = BitConverter.ToInt32(bytes, 0);
+            var remaining = bytes.Skip(4);
+
+            PreviousBlockHash = remaining.Take(32).ToArray();
+            remaining = remaining.Skip(32);
+
+            var merkleRoot = remaining.Take(32).ToArray();
+            remaining = remaining.Skip(32);
+
+            TimeStamp = BitConverter.ToUInt32(remaining.ToArray(), 0);
+            remaining = remaining.Skip(4);
+
+            Bits = BitConverter.ToUInt32(remaining.ToArray(), 0);
+            remaining = remaining.Skip(4);
+
+            Nonce = BitConverter.ToUInt32(remaining.ToArray(), 0);
+            remaining = remaining.Skip(4);
+
+            // Handle PrimeChainMultiplier...
+            var pcmCount = new IntegerPayload(remaining.ToArray());
+            remaining = remaining.Skip(pcmCount.ToBytes().Length);
+            var pcmBytes = remaining.Take((Int32)pcmCount.Integer).ToArray();
+            remaining = remaining.Skip(pcmBytes.Length);
+            PrimeChainMultiplier = new BigInteger(pcmBytes);
+
+            var txCount = new IntegerPayload(remaining.ToArray());
+            remaining = remaining.Skip(txCount.ToBytes().Length);
+
+            Transactions = new List<TransactionPayload>();
+            for(UInt64 i = 0; i < txCount.Integer; i++)
+            {
+                var tx = new TransactionPayload(remaining.ToArray());
+                remaining = remaining.Skip(tx.ToBytes().Length);
+                Transactions.Add(tx);
+            }
+
+            if (!merkleRoot.SequenceEqual(MerkleRoot))
+            {
+                throw new Exception("MerkleRoot incorrect!");
+            }
+        }
+
+        public override byte[] ToBytes()
+        {
+            var bytes = new Byte[0].AsEnumerable();
+            bytes = bytes.Concat(BitConverter.GetBytes(Version));
+            bytes = bytes.Concat(PreviousBlockHash);
+            bytes = bytes.Concat(MerkleRoot);
+            bytes = bytes.Concat(BitConverter.GetBytes(TimeStamp));
+            bytes = bytes.Concat(BitConverter.GetBytes(Bits));
+            bytes = bytes.Concat(BitConverter.GetBytes(Nonce));
+
+            var pcmBytes = PrimeChainMultiplier.ToByteArray();
+            var pcmCount = new IntegerPayload((UInt64)pcmBytes.Length);
+            bytes = bytes.Concat(pcmCount.ToBytes()).Concat(pcmBytes);
+
+            var txCount = new IntegerPayload((UInt64)Transactions.Count);
+            bytes = bytes.Concat(txCount.ToBytes());
+            foreach(TransactionPayload tx in Transactions)
+            {
+                bytes = bytes.Concat(tx.ToBytes());
+            }
+
+            return bytes.ToArray();
+        }
+    }
+
+    public class TxInputPayload : Payload
+    {
+        public TxOutPointPayload PreviousTransaction { get; }
+        public UnknownPayload Script { get; }
+        public UInt32 Sequence { get; }
+
+        public TxInputPayload(
+            TxOutPointPayload previousTx,
+            UnknownPayload script,
+            UInt32 sequence
+        )
+        {
+            PreviousTransaction = previousTx;
+            Script = script;
+            Sequence = sequence;
+        }
+
+        public TxInputPayload(byte[] bytes)
+        {
+            PreviousTransaction = new TxOutPointPayload(bytes);
+            var remaining = bytes.Skip(PreviousTransaction.ToBytes().Length);
+
+            var scriptLength = new IntegerPayload(remaining.ToArray());
+            remaining = remaining.Skip(scriptLength.ToBytes().Length);
+
+            Script = new UnknownPayload(remaining.Take((Int32)scriptLength.Integer).ToArray());
+            remaining = remaining.Skip(Script.ToBytes().Length);
+
+            Sequence = BitConverter.ToUInt32(remaining.ToArray(), 0);
+        }
+
+        public override byte[] ToBytes()
+        {
+            var txOutPointBytes = PreviousTransaction.ToBytes();
+            var scriptBytes = Script.ToBytes();
+            var scriptLengthBytes = new IntegerPayload((UInt64)scriptBytes.Length).ToBytes();
+            var sequenceBytes = BitConverter.GetBytes(Sequence);
+
+            return txOutPointBytes
+                   .Concat(scriptLengthBytes)
+                   .Concat(scriptBytes)
+                   .Concat(sequenceBytes)
+                   .ToArray();
+        }
+    }
+
+    public class TxOutPointPayload : Payload
+    {
+        public Byte[] TransactionHash { get; }
+        public UInt32 Index { get; }
+        
+        public TxOutPointPayload(Byte[] txHash, UInt32 index)
+        {
+            TransactionHash = txHash;
+            Index = index;
+        }
+
+        public TxOutPointPayload(byte[] bytes)
+        {
+            TransactionHash = bytes.Take(32).ToArray();
+            Index = BitConverter.ToUInt32(bytes, 32);
+        }
+
+        public override byte[] ToBytes()
+        {
+            return TransactionHash.Concat(BitConverter.GetBytes(Index)).ToArray();
+        }
+    }
+
+    public class TxOutputPayload : Payload
+    {
+
+        public Int64 Amount { get; }
+        public UnknownPayload Script { get; }
+
+        public TxOutputPayload(Int64 amount, UnknownPayload script)
+        {
+            Amount = amount;
+            Script = script;
+        }
+
+        public TxOutputPayload(byte[] bytes)
+        {
+            Amount = BitConverter.ToInt64(bytes, 0);
+            var remaining = bytes.Skip(8);
+
+            var scriptLength = new IntegerPayload(remaining.ToArray());
+            remaining = remaining.Skip(scriptLength.ToBytes().Length);
+
+            Script = new UnknownPayload(remaining.Take((Int32)scriptLength.Integer).ToArray());
+        }
+
+        public override byte[] ToBytes()
+        {
+            var amount = BitConverter.GetBytes(Amount);
+            var script = Script.ToBytes();
+            var scriptLength = new IntegerPayload((UInt64)script.Length);
+
+            return amount
+                   .Concat(scriptLength.ToBytes())
+                   .Concat(script)
+                   .ToArray();
         }
     }
 }

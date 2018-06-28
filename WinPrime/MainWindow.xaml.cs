@@ -114,10 +114,14 @@ namespace WinPrime
             if (message != null)
             {
                 var messageString = String.Format(
-                    "Command: {0}\nBytes: {1}",
+                    "Command: {0}\nCommand Payload: {1}\nBytes: ",
                     message.Command,
                     message.CommandPayload
                 );
+                foreach(Byte b in message.CommandPayload.ToBytes())
+                {
+                    messageString += b.ToString("X2") + " ";
+                }
                 MessageBox.Show(messageString);
             }
         }
