@@ -53,8 +53,17 @@ namespace WinPrime
         void HandleNewBestBlock(object sender, NewBestBlockEventArgs a)
         {
             Dispatcher.Invoke(() =>
-                BestBlockTextBlock.Text = DateTime.Now.ToString()
-            );
+            {
+                BestBlockReceivedTextBlock.Text = DateTime.Now.ToString();
+                BestBlockVersionTextBlock.Text = a.Block.Version.ToString();
+                BestBlockTimeStampTextBlock.Text = a.Block.TimeStamp.ToString();
+                BestBlockBitsTextBlock.Text = a.Block.Bits.ToString();
+                BestBlockNonceTextBlock.Text = a.Block.Nonce.ToString();
+                BestBlockPCMTextBlock.Text = a.Block.PrimeChainMultiplier.ToString();
+                BestBlockTransactionsTextBlock.Text = a.Block.Transactions.Count.ToString();
+                BestBlockMerkleRootTextBlock.Text = BitConverter.ToString(a.Block.MerkleRoot).Replace("-", string.Empty);
+                BestBlockHeaderHashTextBlock.Text = BitConverter.ToString(a.Block.Hash()).Replace("-", string.Empty);
+            });
         }
 
         void HandleConnectionSelectionChanged(object sender, SelectionChangedEventArgs a)

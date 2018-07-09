@@ -46,6 +46,7 @@ namespace PrimeBlockchain
 
         void ProcessBlockPayload(BlockPayload payload)
         {
+            Algorithms.CheckProofOfWork(payload);
             // Signal as newest block b/c lazy for a second...
             NewBestBlock?.Invoke(this, new NewBestBlockEventArgs(payload));
         }

@@ -583,8 +583,47 @@ namespace PrimeNetwork
         }
     }
 
+    public class TargetChainLengthTooBig : Exception { }
+    public class TargetChainLengthTooSmall : Exception { }
+    public class BlockHeaderHashTooSmall : Exception { }
+    public class ChainOriginTooBig : Exception { }
+    public class ChainOriginTooSmall : Exception { }
+
+    public class Difficulty
+    {
+        public Byte Length;
+        public UInt32 Fraction;
+
+        public Difficulty(Byte length, UInt32 fraction)
+        {
+            Length = length;
+            Fraction = fraction;
+        }
+
+        public Difficulty(UInt32 bits)
+        {
+            var bytes = BitConverter.GetBytes(bits);
+            Length = bytes[3];
+
+            bytes[3] = 0x00;
+            Fraction = BitConverter.ToUInt32(bytes, 0);
+        }
+
+        public UInt32 ToBits()
+        {
+            var bytes = BitConverter.GetBytes(Fraction);
+            bytes[3] = Length;
+            return BitConverter.ToUInt32(bytes, 0);
+        }
+    }
+
     // Pulling out some functions for easier testing and future moving around.
     public static class Algorithms {
+
+        public static Difficulty FermatProbablePrimalityTest(BigInteger num)
+        {
+            return new Difficulty(length: 1, fraction: 0);
+        }
 
         public static Byte[] MerkleRoot(List<TransactionPayload> txs)
         {
@@ -613,6 +652,50 @@ namespace PrimeNetwork
             }
 
             return hashes[0];
+        }
+
+        public static Byte GetTargetChainLength(UInt32 bits)
+        {
+            return BitConverter.GetBytes(bits)[3];
+        }
+
+        public static Tuple<UInt32, UInt32, UInt32> ProbablePrimeChainTest(BigInteger num)
+        {
+            return null;
+        }
+
+        public static void CheckProofOfWork(BlockPayload block)
+        {
+            var difficulty = new Difficulty(block.Bits);
+            if (difficulty.Length < 6)
+            {
+                throw new TargetChainLengthTooSmall();
+            }
+            if (difficulty.Length > 99)
+            {
+                throw new TargetChainLengthTooBig();
+            }
+
+            var minHeaderHash = new BigInteger(1) << 255;
+            var headerHashBytes = block.HeaderHash().AsEnumerable();
+            headerHashBytes = headerHashBytes.Concat(new Byte[] { 0x00 });
+            var headerHash = new BigInteger(headerHashBytes.ToArray());
+            if (headerHash < minHeaderHash)
+            {
+                throw new BlockHeaderHashTooSmall();
+            }
+
+            var minChainOrigin = new BigInteger(1) << 255;
+            var maxChainOrigin = new BigInteger(1) << 2000 - 1;
+            var chainOrigin = headerHash * block.PrimeChainMultiplier;
+            if (chainOrigin < minChainOrigin)
+            {
+                throw new ChainOriginTooSmall();
+            }
+            if (chainOrigin > maxChainOrigin)
+            {
+                throw new ChainOriginTooBig();
+            }
         }
     }
 
@@ -713,6 +796,46 @@ namespace PrimeNetwork
             }
 
             return bytes.ToArray();
+        }
+
+        public Byte[] HeaderHash()
+        {
+            var version = BitConverter.GetBytes(Version);
+            var timeStamp = BitConverter.GetBytes(TimeStamp);
+            var bits = BitConverter.GetBytes(Bits);
+            var nonce = BitConverter.GetBytes(Nonce);
+            var bytes =  version
+                         .Concat(PreviousBlockHash)
+                         .Concat(MerkleRoot)
+                         .Concat(timeStamp)
+                         .Concat(bits)
+                         .Concat(nonce)
+                         .ToArray();
+
+            SHA256 sha256 = SHA256Managed.Create();
+            return sha256.ComputeHash(sha256.ComputeHash(bytes));
+        }
+
+        public Byte[] Hash()
+        {
+            var version = BitConverter.GetBytes(Version);
+            var timeStamp = BitConverter.GetBytes(TimeStamp);
+            var bits = BitConverter.GetBytes(Bits);
+            var nonce = BitConverter.GetBytes(Nonce);
+            var pcmBytes = PrimeChainMultiplier.ToByteArray();
+            var pcmCount = new IntegerPayload((UInt64)pcmBytes.Length);
+            var pcm = pcmCount.ToBytes().Concat(pcmBytes);
+            var bytes = version
+                         .Concat(PreviousBlockHash)
+                         .Concat(MerkleRoot)
+                         .Concat(timeStamp)
+                         .Concat(bits)
+                         .Concat(nonce)
+                         .Concat(pcm)
+                         .ToArray();
+
+            SHA256 sha256 = SHA256Managed.Create();
+            return sha256.ComputeHash(sha256.ComputeHash(bytes));
         }
     }
 
