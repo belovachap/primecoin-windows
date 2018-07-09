@@ -664,35 +664,32 @@ namespace PrimeNetwork
             return null;
         }
 
-        public static void CheckProofOfWork(BlockPayload block)
+        public static void CheckProofOfWork(BlockPayload block, NetworkConfiguration networkConfig)
         {
             var difficulty = new Difficulty(block.Bits);
-            if (difficulty.Length < 6)
+            if (difficulty.Length < networkConfig.MinimumChainLength)
             {
                 throw new TargetChainLengthTooSmall();
             }
-            if (difficulty.Length > 99)
+            if (difficulty.Length > networkConfig.MaximumChainLength)
             {
                 throw new TargetChainLengthTooBig();
             }
 
-            var minHeaderHash = new BigInteger(1) << 255;
             var headerHashBytes = block.HeaderHash().AsEnumerable();
             headerHashBytes = headerHashBytes.Concat(new Byte[] { 0x00 });
             var headerHash = new BigInteger(headerHashBytes.ToArray());
-            if (headerHash < minHeaderHash)
+            if (headerHash < networkConfig.MinimumHeaderHash)
             {
                 throw new BlockHeaderHashTooSmall();
             }
 
-            var minChainOrigin = new BigInteger(1) << 255;
-            var maxChainOrigin = new BigInteger(1) << 2000 - 1;
             var chainOrigin = headerHash * block.PrimeChainMultiplier;
-            if (chainOrigin < minChainOrigin)
+            if (chainOrigin < networkConfig.MinimumChainOrigin)
             {
                 throw new ChainOriginTooSmall();
             }
-            if (chainOrigin > maxChainOrigin)
+            if (chainOrigin > networkConfig.MaximumChainOrigin)
             {
                 throw new ChainOriginTooBig();
             }

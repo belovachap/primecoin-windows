@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Numerics;
 
 
 namespace PrimeNetwork
@@ -26,6 +27,39 @@ namespace PrimeNetwork
         }
     }
 
+    public class NetworkConfiguration
+    {
+        public UInt16 DefaultPort { get; }
+        public UInt32 Magic { get; }
+        public String DNSSeed { get; }
+        public UInt32 MinimumChainLength { get; }
+        public UInt32 MaximumChainLength { get; }
+        public BigInteger MinimumHeaderHash { get; }
+        public BigInteger MinimumChainOrigin { get; }
+        public BigInteger MaximumChainOrigin { get; }
+
+        public NetworkConfiguration(
+            UInt16 defaultPort,
+            UInt32 magic,
+            String dnsSeed,
+            UInt32 minimumChainLength,
+            UInt32 maximumChainLength,
+            BigInteger minimumHeaderHash,
+            BigInteger minimumChainOrigin,
+            BigInteger maximumChainOrigin
+        )
+        {
+            DefaultPort = defaultPort;
+            Magic = magic;
+            DNSSeed = dnsSeed;
+            MinimumChainLength = minimumChainLength;
+            MaximumChainLength = maximumChainLength;
+            MinimumHeaderHash = minimumHeaderHash;
+            MinimumChainOrigin = minimumChainLength;
+            MaximumChainOrigin = maximumChainOrigin;
+        }
+    }
+
     public class Connection
     {
         public event EventHandler<NewMessageEventArgs> NewMessage;
@@ -36,6 +70,7 @@ namespace PrimeNetwork
         public UInt64 Services { get; }
         public Int32 ProtocolVersion { get; }
         public UInt32 StartHeight { get; }
+        public NetworkConfiguration NetworkConfig { get; }
         public Boolean Alive;
         public ConnectionDeadException DeathException;
 
@@ -49,11 +84,18 @@ namespace PrimeNetwork
         Object ReceiveLock = new Object();
         CancellationTokenSource CancelReceivingMessages;
 
-        public Connection(IPAddress from, IPAddress to, UInt16 port, TcpClient client)
+        public Connection(
+            IPAddress from,
+            IPAddress to,
+            UInt16 port,
+            NetworkConfiguration networkConfig,
+            TcpClient client
+        )
         {
             From = from;
             To = to;
             Port = port;
+            NetworkConfig = networkConfig;
             SentMessages = new List<MessagePayload>();
             ReceivedMessages = new List<MessagePayload>();
             Client = client;
@@ -131,7 +173,7 @@ namespace PrimeNetwork
 
                 try
                 {
-                    var framer = new MessageFramer();
+                    var framer = new MessageFramer(NetworkConfig.Magic);
                     var message = framer.NextMessage(Stream);
                     ReceivedMessages.Add(message);
                     return message;
@@ -176,17 +218,21 @@ namespace PrimeNetwork
             );
         }
 
+        public void SendGetDataMessage(InvPayload invPayload)
+        {
+            var message = new MessagePayload(NetworkConfig.Magic, "getdata", invPayload);
+            SendMessage(message);
+        }
+
         void SendVersionMessage()
         {
-            UInt32 magic = 0xE7E5E7E4;
-            var message = new MessagePayload(magic, "version", GetVersionPayload());
+            var message = new MessagePayload(NetworkConfig.Magic, "version", GetVersionPayload());
             SendMessage(message);
         }
 
         void SendVerAckMessage()
         {
-            UInt32 magic = 0xE7E5E7E4;
-            var message = new MessagePayload(magic, "verack", new VerAckPayload());
+            var message = new MessagePayload(NetworkConfig.Magic, "verack", new VerAckPayload());
             SendMessage(message);
         }
 

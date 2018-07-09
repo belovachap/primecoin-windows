@@ -664,7 +664,18 @@ namespace PrimeNetworkTest
             };
             AssertBytesEqual(expected, payload.ToBytes());
             AssertBlockPayloadsEqual(payload, new BlockPayload(expected));
-            Algorithms.CheckProofOfWork(payload); // Should be a valid block.
+
+            var networkConfig = new NetworkConfiguration(
+                defaultPort: 9911,
+                magic: 0xE7E5E7E4,
+                dnsSeed: "seed.primecoin.me",
+                minimumChainLength: 6,
+                maximumChainLength: 99,
+                minimumHeaderHash: new BigInteger(1) << 255,
+                minimumChainOrigin: new BigInteger(1) << 255,
+                maximumChainOrigin: new BigInteger(1) << 2000 - 1
+            );
+            Algorithms.CheckProofOfWork(payload, networkConfig); // Should be a valid block.
         }
 
         // Write a test that shows this block is valid in the POW sense.
@@ -681,8 +692,18 @@ namespace PrimeNetworkTest
                 primeChainMultiplier: new BigInteger(),
                 txs: null
             );
+            var networkConfig = new NetworkConfiguration(
+                defaultPort: 9911,
+                magic: 0xE7E5E7E4,
+                dnsSeed: "seed.primecoin.me",
+                minimumChainLength: 6,
+                maximumChainLength: 99,
+                minimumHeaderHash: new BigInteger(1) << 255,
+                minimumChainOrigin: new BigInteger(1) << 255,
+                maximumChainOrigin: new BigInteger(1) << 2000 - 1
+            );
             Assert.ThrowsException<TargetChainLengthTooSmall>(
-                () => Algorithms.CheckProofOfWork(block)
+                () => Algorithms.CheckProofOfWork(block, networkConfig)
             );
 
             // Target Chain Length too big
@@ -694,9 +715,9 @@ namespace PrimeNetworkTest
                nonce: 1,
                primeChainMultiplier: new BigInteger(),
                txs: null
-           );
+            );
             Assert.ThrowsException<TargetChainLengthTooBig>(
-                () => Algorithms.CheckProofOfWork(block)
+                () => Algorithms.CheckProofOfWork(block, networkConfig)
             );
 
             // Header Hash too small
@@ -764,7 +785,7 @@ namespace PrimeNetworkTest
                 txs: txs
             );
             Assert.ThrowsException<BlockHeaderHashTooSmall>(
-                () => Algorithms.CheckProofOfWork(block)
+                () => Algorithms.CheckProofOfWork(block, networkConfig)
             );
 
             block = new BlockPayload(
@@ -782,7 +803,7 @@ namespace PrimeNetworkTest
                 txs: txs
             );
             Assert.ThrowsException<ChainOriginTooSmall>(
-                () => Algorithms.CheckProofOfWork(block)
+                () => Algorithms.CheckProofOfWork(block, networkConfig)
             );
 
             block = new BlockPayload(
@@ -800,7 +821,7 @@ namespace PrimeNetworkTest
                 txs: txs
             );
             Assert.ThrowsException<ChainOriginTooBig>(
-                () => Algorithms.CheckProofOfWork(block)
+                () => Algorithms.CheckProofOfWork(block, networkConfig)
             );
         }
 

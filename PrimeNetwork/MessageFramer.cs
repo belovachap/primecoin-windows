@@ -5,17 +5,25 @@ namespace PrimeNetwork
 {
     class MessageFramer
     {
+        UInt32 Magic;
+
+        public MessageFramer(UInt32 magic)
+        {
+            Magic = magic;
+        }
+
         public MessagePayload NextMessage(Stream stream)
         {
             var message = new MemoryStream();
 
             // Read the Magic Bytes.
+            var magicBytes = BitConverter.GetBytes(Magic);
             Int32 nextByte = stream.ReadByte();
             if (nextByte == -1)
             {
                 throw new Exception("Stream closed.");
             }
-            if (nextByte != 0xE4)
+            if (nextByte != magicBytes[0])
             {
                 throw new Exception("Was expecting first magic byte.");
             }
@@ -26,7 +34,7 @@ namespace PrimeNetwork
             {
                 throw new Exception("Stream closed.");
             }
-            if (nextByte != 0xE7)
+            if (nextByte != magicBytes[1])
             {
                 throw new Exception("Was expecting second magic byte.");
             }
@@ -37,7 +45,7 @@ namespace PrimeNetwork
             {
                 throw new Exception("Stream closed.");
             }
-            if (nextByte != 0xE5)
+            if (nextByte != magicBytes[2])
             {
                 throw new Exception("Was expecting third magic byte.");
             }
@@ -48,7 +56,7 @@ namespace PrimeNetwork
             {
                 throw new Exception("Stream closed.");
             }
-            if (nextByte != 0xE7)
+            if (nextByte != magicBytes[3])
             {
                 throw new Exception("Was expecting fourth magic byte.");
             }

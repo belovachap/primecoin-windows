@@ -3,7 +3,7 @@ using System.Net;
 using System.Windows;
 using System.Collections.Generic;
 using System.Windows.Controls;
-
+using System.Numerics;
 using PrimeBlockchain;
 using PrimeNetwork;
 
@@ -18,7 +18,7 @@ namespace WinPrime
         ConnectionManager Connections;
         BlockchainManager Blockchains;
 
-        public MainWindow()
+        public MainWindow(Boolean useTestnet)
         {
             InitializeComponent();
 
@@ -33,7 +33,34 @@ namespace WinPrime
             Blockchains.NewBlockchain += new EventHandler<NewBlockchainEventArgs>(HandleNewBlockchain);
             Blockchains.NewBestBlock += new EventHandler<NewBestBlockEventArgs>(HandleNewBestBlock);
 
-            Connections = new ConnectionManager(IPAddress.Parse("127.0.0.1"), 9911);
+            NetworkConfiguration networkConfig;
+            if (useTestnet)
+            {
+                networkConfig = new NetworkConfiguration(
+                    defaultPort: 9913,
+                    magic: 0xC3CBFEFB,
+                    dnsSeed: "tseed.primecoin.me",
+                    minimumChainLength: 2,
+                    maximumChainLength: 99,
+                    minimumHeaderHash: new BigInteger(1) << 255,
+                    minimumChainOrigin: new BigInteger(1) << 255,
+                    maximumChainOrigin: new BigInteger(1) << 2000 - 1
+                );
+            }
+            else
+            {
+                networkConfig = new NetworkConfiguration(
+                    defaultPort: 9911,
+                    magic: 0xE7E5E7E4,
+                    dnsSeed: "seed.primecoin.me",
+                    minimumChainLength: 6,
+                    maximumChainLength: 99,
+                    minimumHeaderHash: new BigInteger(1) << 255,
+                    minimumChainOrigin: new BigInteger(1) << 255,
+                    maximumChainOrigin: new BigInteger(1) << 2000 - 1
+                );
+            }
+            Connections = new ConnectionManager(networkConfig);
             Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(Blockchains.HandleNewConnection);
             Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(HandleNewConnection);
 

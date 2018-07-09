@@ -46,7 +46,7 @@ namespace PrimeBlockchain
 
         void ProcessBlockPayload(BlockPayload payload)
         {
-            Algorithms.CheckProofOfWork(payload);
+            Algorithms.CheckProofOfWork(payload, Connection.NetworkConfig);
             // Signal as newest block b/c lazy for a second...
             NewBestBlock?.Invoke(this, new NewBestBlockEventArgs(payload));
         }
@@ -61,9 +61,7 @@ namespace PrimeBlockchain
                     unknownBlocks.Add(entry);
                 }
             }
-            UInt32 magic = 0xE7E5E7E4;
-            var message = new MessagePayload(magic, "getdata", new InvPayload(unknownBlocks));
-            Connection.SendMessage(message);
+            Connection.SendGetDataMessage(new InvPayload(unknownBlocks));
         }
     }
 }
