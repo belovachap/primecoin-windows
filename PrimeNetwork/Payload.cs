@@ -615,15 +615,45 @@ namespace PrimeNetwork
             bytes[3] = Length;
             return BitConverter.ToUInt32(bytes, 0);
         }
+
+        public static bool operator >(Difficulty left, Difficulty right)
+        {
+            if (left.Length > right.Length)
+            {
+                return true;
+            }
+            else if (left.Length == right.Length && left.Fraction > right.Fraction)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool operator <(Difficulty left, Difficulty right)
+        {
+            if (left.Length < right.Length)
+            {
+                return true;
+            }
+            else if (left.Length == right.Length && left.Fraction < right.Fraction)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 
     // Pulling out some functions for easier testing and future moving around.
-    public static class Algorithms {
-
-        public static Difficulty FermatProbablePrimalityTest(BigInteger num)
+    public static class Algorithms
+    {
+        public enum PrimeChainType
         {
-            return new Difficulty(length: 1, fraction: 0);
-        }
+            CunnighamFirstKind=1,
+            CunnighamSecondKind,
+            BiTwin,
+        };
 
         public static Byte[] MerkleRoot(List<TransactionPayload> txs)
         {
@@ -654,17 +684,119 @@ namespace PrimeNetwork
             return hashes[0];
         }
 
-        public static Byte GetTargetChainLength(UInt32 bits)
+        public static Difficulty FermatProbablePrimalityTest(BigInteger num)
         {
-            return BitConverter.GetBytes(bits)[3];
+            var a = new BigInteger(2);
+            var e = num - 1;
+            var r = BigInteger.ModPow(a, e, num);
+            if (r == 1)
+            {
+                return new Difficulty(length: 1, fraction: 0);
+            }
+            var fraction = ((num - r) << 24) / num;
+            return new Difficulty(length: 0, fraction: (UInt32)fraction);
         }
 
-        public static Tuple<UInt32, UInt32, UInt32> ProbablePrimeChainTest(BigInteger num)
+        public static Difficulty EulerLagrangeLifchitzPrimalityTest(BigInteger num, Boolean useSophieGermain)
         {
-            return null;
+            var a = new BigInteger(2);
+            var e = (num - 1) >> 1;
+            var r = BigInteger.ModPow(a, e, num);
+            var numMod8 = num % 8;
+
+            Boolean isProbablePrime;
+            if(useSophieGermain && (numMod8 == 7)) // Euler & Lagrange
+            {
+                isProbablePrime = (r == 1);
+            }
+            else if (useSophieGermain && (numMod8 == 3)) // Lifchitz
+            {
+                isProbablePrime = ((r + 1) == num);
+            }
+            else if (!useSophieGermain && (numMod8 == 5)) // Lifchitz
+            {
+                isProbablePrime = ((r + 1) == num);
+            }
+            else if (!useSophieGermain && (numMod8 == 1)) // Lifchitz
+            {
+                isProbablePrime = (r == 1);
+            }
+            else
+            {
+                throw new Exception("EulerLagrangeLifchitzPrimalityTest invalid blah blah blah.");
+            }
+
+            if(isProbablePrime)
+            {
+                return new Difficulty(1, 0);
+            }
+            r = (r * r) % num; // derive Fermat test remainder
+            var fraction = ((num - r) << 24) / num;
+            return new Difficulty(0, (UInt32)fraction);
         }
 
-        public static void CheckProofOfWork(BlockPayload block, NetworkConfiguration networkConfig)
+
+        public static Difficulty ProbableCunninghamChainTest(
+            BigInteger num,
+            Boolean useSophieGermain,
+            Boolean useAllFermat
+        )
+        {
+            Byte chainLength = 0;
+            Difficulty result = FermatProbablePrimalityTest(num);
+            if (result.Length != 1)
+            {
+                return new Difficulty(length: chainLength, fraction: result.Fraction);
+            }
+            chainLength++;
+
+            var offset = useSophieGermain ? 1 : -1;
+            while (true)
+            {
+                num = 2 * num + offset;
+                result = useAllFermat ? FermatProbablePrimalityTest(num)
+                                      : EulerLagrangeLifchitzPrimalityTest(num, useSophieGermain);
+                if (result.Length != 1)
+                {
+                    return new Difficulty(length: chainLength, fraction: result.Fraction);
+                }
+                chainLength++;
+            }
+        }
+
+        public static 
+        Tuple<Boolean, Difficulty, Difficulty, Difficulty>
+        ProbablePrimeChainTest(BigInteger primeChainOrigin, Difficulty target, Boolean useAllFermatTests)
+        {
+            var cunninghamOne = ProbableCunninghamChainTest(primeChainOrigin - 1, true, useAllFermatTests);
+            var cunninghamTwo = ProbableCunninghamChainTest(primeChainOrigin + 1, false, useAllFermatTests);
+            Difficulty biTwin;
+            if(cunninghamOne.Length > cunninghamTwo.Length)
+            {
+                biTwin = new Difficulty(
+                    length: (Byte)(cunninghamTwo.Length + cunninghamTwo.Length + 1),
+                    fraction: cunninghamTwo.Fraction
+                );
+            }
+            else
+            {
+                biTwin = new Difficulty(
+                    length: (Byte)(cunninghamOne.Length + cunninghamOne.Length),
+                    fraction: cunninghamOne.Fraction
+                );
+            }
+        
+            Boolean passesTargetDifficulty = (
+                cunninghamOne > target 
+                || cunninghamTwo > target
+                || biTwin > target
+            );
+            return Tuple.Create(passesTargetDifficulty, cunninghamOne, cunninghamTwo, biTwin); 
+        }
+
+        public static
+        Tuple<Algorithms.PrimeChainType, Difficulty>
+        CheckProofOfWork(BlockPayload block, NetworkConfiguration networkConfig)
         {
             var difficulty = new Difficulty(block.Bits);
             if (difficulty.Length < networkConfig.MinimumChainLength)
@@ -693,6 +825,66 @@ namespace PrimeNetwork
             {
                 throw new ChainOriginTooBig();
             }
+
+            var result = ProbablePrimeChainTest(chainOrigin, difficulty, false);
+            if (result.Item1 == false)
+            {
+                throw new Exception("chainOrigin failed ProbablePrimeChainTest");
+            }
+            if (result.Item2 < difficulty && result.Item3 < difficulty && result.Item4 < difficulty)
+            {
+                throw new Exception("chain difficulty too small");
+            }
+
+            var fermatResult = ProbablePrimeChainTest(chainOrigin, difficulty, true);
+            if (fermatResult.Item1 == false)
+            {
+                throw new Exception("chainOrigin failed ProbablePrimeChainTest fermat tests");
+            }
+            if (
+                fermatResult.Item2.Length != result.Item2.Length
+             || fermatResult.Item2.Fraction != result.Item2.Fraction
+             || fermatResult.Item3.Length != result.Item3.Length
+             || fermatResult.Item3.Fraction != result.Item3.Fraction
+             || fermatResult.Item4.Length != result.Item4.Length
+             || fermatResult.Item4.Fraction != result.Item4.Fraction
+            )
+            {
+                throw new Exception("chain difficulty mismatch on second pass");
+            }
+
+            // Determine the best prime chain.
+            var chainType = Algorithms.PrimeChainType.CunnighamFirstKind;
+            var chainDifficulty = result.Item2;
+            if (result.Item3 > chainDifficulty)
+            {
+                chainType = Algorithms.PrimeChainType.CunnighamSecondKind;
+                chainDifficulty = result.Item3;
+            }
+            if (result.Item4 > chainDifficulty)
+            {
+                chainType = Algorithms.PrimeChainType.BiTwin;
+                chainDifficulty = result.Item4;
+            }
+
+            // Check that PCM is "normalized".
+            if (block.PrimeChainMultiplier % 2 == 0 && chainOrigin % 4 == 0)
+            {
+                var normalizedResult = ProbablePrimeChainTest(chainOrigin / 2, difficulty, false);
+                if(normalizedResult.Item1 == true)
+                {
+                    if(
+                        normalizedResult.Item2 > chainDifficulty 
+                     || normalizedResult.Item3 > chainDifficulty 
+                     || normalizedResult.Item4 > chainDifficulty
+                    )
+                    {
+                        throw new Exception("PCM is not normalized");
+                    }
+                }
+            }
+
+            return Tuple.Create(chainType, chainDifficulty);
         }
     }
 

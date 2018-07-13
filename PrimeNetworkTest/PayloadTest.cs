@@ -826,14 +826,10 @@ namespace PrimeNetworkTest
         }
 
         [TestMethod]
-        public void TestAlgorithmsGetTargetLength()
+        public void TestDifficulty()
         {
-            // The first byte of the 4 byte "bits"
-            // is the Target Chain Length.
-            Assert.AreEqual(
-                0x0B,
-                Algorithms.GetTargetChainLength(0x0B9D8796)
-            );
+            var difficulty = new Difficulty(0x0B9D8796);
+            Assert.AreEqual(0x0B, difficulty.Length);
         }
     }
 }
