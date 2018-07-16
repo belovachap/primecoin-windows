@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 
-namespace WinPrime
+namespace WinPrimecoin
 {
     /// <summary>
     /// Interaction logic for App.xaml

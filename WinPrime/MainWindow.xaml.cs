@@ -8,7 +8,7 @@ using PrimeBlockchain;
 using PrimeNetwork;
 
 
-namespace WinPrime
+namespace WinPrimecoin
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

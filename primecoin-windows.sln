@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrimeNetwork", "PrimeNetwor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrimeNetworkTest", "PrimeNetworkTest\PrimeNetworkTest.csproj", "{CDB9167E-8BCC-4B74-B837-3B8D9F9F5343}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinPrime", "WinPrime\WinPrime.csproj", "{F420695D-C246-475E-A94E-E3E5A89565C9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinPrimecoin", "WinPrime\WinPrimecoin.csproj", "{F420695D-C246-475E-A94E-E3E5A89565C9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrimeBlockchain", "PrimeBlockchain\PrimeBlockchain.csproj", "{62BBD29D-7847-4097-A84F-BF1DA96DCDF4}"
 EndProject
