@@ -45,7 +45,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PrimeNetwork\Connection.csproj">
+    <ProjectReference Include="..\Connection\Connection.csproj">
       <Project>{3905a3ea-5cc9-4fc8-ba8c-df4b6f5baa3e}</Project>
       <Name>Connection</Name>
     </ProjectReference>
