@@ -1,12 +1,12 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PrimeNetwork;
+using Connection;
 using System;
 using System.Net;
 using System.Collections.Generic;
 using System.Numerics;
 
 
-namespace PrimeNetworkTest
+namespace ConnectionTest
 {
     [TestClass]
     public class PayloadTest

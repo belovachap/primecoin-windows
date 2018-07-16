@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using PrimeNetwork;
+using Connection;
 
-namespace PrimeBlockchain
+namespace Blockchain
 {
 
     public class NewBestBlockEventArgs : EventArgs
@@ -19,9 +19,9 @@ namespace PrimeBlockchain
     {
         public event EventHandler<NewBestBlockEventArgs> NewBestBlock;
 
-        Connection Connection;
+        Connection.Connection Connection;
 
-        public Blockchain(Connection connection)
+        public Blockchain(Connection.Connection connection)
         {
             Connection = connection;
             Connection.NewMessage += new EventHandler<NewMessageEventArgs>(HandleNewMessage);

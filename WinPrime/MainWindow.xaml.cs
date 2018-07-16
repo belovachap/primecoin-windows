@@ -4,8 +4,8 @@ using System.Windows;
 using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Numerics;
-using PrimeBlockchain;
-using PrimeNetwork;
+using Blockchain;
+using Connection;
 
 
 namespace WinPrimecoin
@@ -107,7 +107,7 @@ namespace WinPrimecoin
             ConnectionMessagesOutListBox.Items.Clear();
             ConnectionMessagesInListBox.Items.Clear();
 
-            var connection = (Connection)ConnectionListBox.SelectedItem;
+            var connection = (Connection.Connection)ConnectionListBox.SelectedItem;
             if (connection != null)
             {
                 ConnectionFromTextBlock.Text = connection.From.ToString();

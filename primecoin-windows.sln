@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2037
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrimeNetwork", "PrimeNetwork\PrimeNetwork.csproj", "{3905A3EA-5CC9-4FC8-BA8C-DF4B6F5BAA3E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Connection", "PrimeNetwork\Connection.csproj", "{3905A3EA-5CC9-4FC8-BA8C-DF4B6F5BAA3E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrimeNetworkTest", "PrimeNetworkTest\PrimeNetworkTest.csproj", "{CDB9167E-8BCC-4B74-B837-3B8D9F9F5343}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectionTest", "PrimeNetworkTest\ConnectionTest.csproj", "{CDB9167E-8BCC-4B74-B837-3B8D9F9F5343}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinPrimecoin", "WinPrime\WinPrimecoin.csproj", "{F420695D-C246-475E-A94E-E3E5A89565C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrimeBlockchain", "PrimeBlockchain\PrimeBlockchain.csproj", "{62BBD29D-7847-4097-A84F-BF1DA96DCDF4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain", "PrimeBlockchain\Blockchain.csproj", "{62BBD29D-7847-4097-A84F-BF1DA96DCDF4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

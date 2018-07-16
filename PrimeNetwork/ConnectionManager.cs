@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
-namespace PrimeNetwork
+namespace Connection
 {
 
     public class NewConnectionEventArgs : EventArgs

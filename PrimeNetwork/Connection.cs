@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Numerics;
 
 
-namespace PrimeNetwork
+namespace Connection
 {
 
     public class ConnectionDeadException : Exception

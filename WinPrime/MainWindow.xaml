@@ -8,7 +8,7 @@
         Title="WinPrimecoin" Height="450" Width="800">
     <Grid>
         <TabControl HorizontalAlignment="Left" VerticalAlignment="Top" Height="399" Width="772" Margin="10,10,0,0">
-            <TabItem x:Name="NetworkTabItem" Header="Network">
+            <TabItem x:Name="ConnectionsTabItem" Header="Connections">
                 <Grid Background="#FFE5E5E5">
                     <ListBox x:Name="ConnectionListBox" HorizontalAlignment="Left" Height="351" VerticalAlignment="Top" Width="376" Margin="10,10,0,0"/>
                     <Label Content="From Address:" HorizontalAlignment="Left" Height="28" Margin="391,10,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right"/>
@@ -33,7 +33,7 @@
                     <TextBlock x:Name="ConnectionMessagesInCountTextBlock" HorizontalAlignment="Left" Height="28" Margin="401,318,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96" TextAlignment="Right"/>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="BlockchainTabItem" Header="Blockchain">
+            <TabItem x:Name="BlockchainsTabItem" Header="Blockchains">
                 <Grid Background="#FFE5E5E5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="9*"/>
@@ -60,8 +60,8 @@
                     <TextBlock x:Name="BestBlockHeaderHashTextBlock" HorizontalAlignment="Left" Height="28" Margin="484,239,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="1"/>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="MineTabItem" Header="Mine"/>
-            <TabItem x:Name="WalletTabItem" Header="Wallet"/>
+            <TabItem x:Name="MinersTabItem" Header="Miners"/>
+            <TabItem x:Name="WalletsTabItem" Header="Wallets"/>
         </TabControl>
 
     </Grid>

@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using System.Numerics;
 
 
-namespace PrimeNetwork
+namespace Connection
 {
     public abstract class Payload
     {

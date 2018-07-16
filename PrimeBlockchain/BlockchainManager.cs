@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using PrimeNetwork;
+using Connection;
 
-namespace PrimeBlockchain
+namespace Blockchain
 {
     public class NewBlockchainEventArgs : EventArgs
     {
