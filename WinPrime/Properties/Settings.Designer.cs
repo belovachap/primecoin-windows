@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace WinPrime.Properties
+namespace WinPrimecoin.Properties
 {
 
 

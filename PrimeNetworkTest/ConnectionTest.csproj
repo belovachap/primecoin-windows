@@ -46,6 +46,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PayloadTest.cs" />
@@ -55,9 +56,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PrimeNetwork\PrimeNetwork.csproj">
+    <ProjectReference Include="..\PrimeNetwork\Connection.csproj">
       <Project>{3905a3ea-5cc9-4fc8-ba8c-df4b6f5baa3e}</Project>
-      <Name>PrimeNetwork</Name>
+      <Name>Connection</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

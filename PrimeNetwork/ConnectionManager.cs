@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
-namespace PrimeNetwork
+namespace Connection
 {
 
     public class NewConnectionEventArgs : EventArgs
@@ -18,17 +18,15 @@ namespace PrimeNetwork
 
     public class ConnectionManager
     {
-        IPAddress MyAddress;
-        UInt16 MyPort;
+        NetworkConfiguration NetworkConfig;
         List<IPAddress> DnsIPAddresses;
         public List<Connection> OutboundConnections;
 
         public event EventHandler<NewConnectionEventArgs> NewConnection;
 
-        public ConnectionManager(IPAddress myAddress, UInt16 myPort)
+        public ConnectionManager(NetworkConfiguration networkConfig)
         {
-            MyAddress = myAddress;
-            MyPort = myPort;
+            NetworkConfig = networkConfig;
             DnsIPAddresses = GetDnsIPAddresses();
             OutboundConnections = new List<Connection>();
         }
@@ -38,32 +36,38 @@ namespace PrimeNetwork
             Byte count = 0;
             foreach(IPAddress toAddress in DnsIPAddresses)
             {
-                var client = new TcpClient();
                 try
                 {
-                    client.Connect(toAddress, 9911);
+                    var client = new TcpClient();
+                    client.Connect(toAddress, NetworkConfig.DefaultPort);
+                    var connection = new Connection(
+                        from: IPAddress.Loopback,
+                        to: toAddress,
+                        port: NetworkConfig.DefaultPort,
+                        networkConfig: NetworkConfig,
+                        client: client
+                    );
+                    OutboundConnections.Add(connection);
+                    NewConnection(this, new NewConnectionEventArgs(connection));
+                    connection.StartReceivingMessages();
+
+                    // Just get eight connections for now.
+                    count++;
+                    if (count >= 8)
+                    {
+                        break;
+                    }
                 }
-                catch (SocketException)
+                catch
                 {
                     continue;
-                }
-
-                var connection = new Connection(MyAddress, toAddress, 9911, client);
-                OutboundConnections.Add(connection);
-                NewConnection(this, new NewConnectionEventArgs(connection));
-
-                // Just get eight connections for now.
-                count++;
-                if (count >= 8)
-                {
-                    break;
                 }
             }
         }
 
         public List<IPAddress> GetDnsIPAddresses()
         {
-            var host = Dns.GetHostEntry("seed.primecoin.me");
+            var host = Dns.GetHostEntry(NetworkConfig.DNSSeed);
             return new List<IPAddress>(host.AddressList);
         }
     }
