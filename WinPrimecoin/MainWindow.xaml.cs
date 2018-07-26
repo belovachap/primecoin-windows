@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Net;
-using System.Windows;
-using System.Collections.Generic;
-using System.Windows.Controls;
 using System.Numerics;
+using System.Windows;
+using System.Windows.Controls;
+
 using Blockchain;
 using Connection;
 using Miner;
-
+using Protocol;
 
 namespace WinPrimecoin
 {
@@ -24,13 +23,16 @@ namespace WinPrimecoin
         {
             InitializeComponent();
 
-            NetworkConfiguration networkConfig;
+            ConnectionConfiguration connectionConfig;
+            ProtocolConfiguration protocolConfig;
             if (useTestnet)
             {
-                networkConfig = new NetworkConfiguration(
+                connectionConfig = new ConnectionConfiguration(
                     defaultPort: 9913,
+                    dnsSeed: "tseed.primecoin.me"
+                );
+                protocolConfig = new ProtocolConfiguration(
                     magic: 0xC3CBFEFB,
-                    dnsSeed: "tseed.primecoin.me",
                     minimumChainLength: 2,
                     maximumChainLength: 99,
                     minimumHeaderHash: new BigInteger(1) << 255,
@@ -40,10 +42,12 @@ namespace WinPrimecoin
             }
             else
             {
-                networkConfig = new NetworkConfiguration(
+                connectionConfig = new ConnectionConfiguration(
                     defaultPort: 9911,
+                    dnsSeed: "seed.primecoin.me"
+                );
+                protocolConfig = new ProtocolConfiguration(
                     magic: 0xE7E5E7E4,
-                    dnsSeed: "seed.primecoin.me",
                     minimumChainLength: 6,
                     maximumChainLength: 99,
                     minimumHeaderHash: new BigInteger(1) << 255,
@@ -59,7 +63,7 @@ namespace WinPrimecoin
             ConnectionMessagesInListBox.SelectionChanged +=
                 new SelectionChangedEventHandler(HandleMessagesInSelectionChanged);
 
-            Miners = new MinerManager(networkConfig);
+            Miners = new MinerManager(protocolConfig);
             MinerListBox.Items.Add(Miners.CPUMiner);
 
             Blockchains = new BlockchainManager();
@@ -67,7 +71,7 @@ namespace WinPrimecoin
             Blockchains.NewBestBlock += new EventHandler<NewBestBlockEventArgs>(HandleNewBestBlock);
             Blockchains.NewBestBlock += new EventHandler<NewBestBlockEventArgs>(Miners.HandleNewBestBlock);
             
-            Connections = new ConnectionManager(networkConfig);
+            Connections = new ConnectionManager(connectionConfig, protocolConfig);
             Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(Blockchains.HandleNewConnection);
             Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(Miners.HandleNewConnection);
             Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(HandleNewConnection);

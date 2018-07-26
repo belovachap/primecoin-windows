@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
 using System.Numerics;
 
 using Connection;
+using Protocol;
 
 namespace Miner
 {
@@ -28,11 +25,11 @@ namespace Miner
         Object StateLock = new Object();
         public Boolean State;
 
-        NetworkConfiguration NetworkConfig;
+        ProtocolConfiguration ProtocolConfig;
 
-        public Miner(NetworkConfiguration networkConfig)
+        public Miner(ProtocolConfiguration protocolConfig)
         {
-            NetworkConfig = networkConfig;
+            ProtocolConfig = protocolConfig;
         }
 
         public void Start(BlockPayload block)
@@ -50,11 +47,11 @@ namespace Miner
                         var headerHashBytes = block.HeaderHash().AsEnumerable();
                         headerHashBytes = headerHashBytes.Concat(new Byte[] { 0x00 });
                         var headerHash = new BigInteger(headerHashBytes.ToArray());
-                        if (headerHash < NetworkConfig.MinimumHeaderHash)
+                        if (headerHash < ProtocolConfig.MinimumHeaderHash)
                         {
                             continue;
                         }
-                        if (Algorithms.ProbablePrimalityTestWithTrialDivision(headerHash))
+                        if (Algorithm.ProbablePrimalityTestWithTrialDivision(headerHash))
                         {
                             AcceptableNonceFound = true;
                             break;

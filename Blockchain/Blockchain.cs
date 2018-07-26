@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using Connection;
+using Protocol;
 
 namespace Blockchain
 {
@@ -46,7 +48,7 @@ namespace Blockchain
 
         void ProcessBlockPayload(BlockPayload payload)
         {
-            Algorithms.CheckProofOfWork(payload, Connection.NetworkConfig);
+            Algorithm.CheckProofOfWork(payload, Connection.ProtocolConfig);
             // Signal as newest block b/c lazy for a second...
             NewBestBlock?.Invoke(this, new NewBestBlockEventArgs(payload));
         }
@@ -56,7 +58,7 @@ namespace Blockchain
             var unknownBlocks = new List<InvEntryPayload>();
             foreach (InvEntryPayload entry in payload.Entries)
             {
-                if (entry.Type == InvEntryType.MSG_BLOCK)
+                if (entry.Type == InvEntryPayload.InvEntryType.MSG_BLOCK)
                 {
                     unknownBlocks.Add(entry);
                 }

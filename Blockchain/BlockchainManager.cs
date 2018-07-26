@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using Connection;
+using Protocol;
 
 namespace Blockchain
 {

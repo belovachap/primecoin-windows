@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Blockchain;
 using Connection;
+using Protocol;
 
 namespace Miner
 {
@@ -41,9 +39,9 @@ namespace Miner
         BlockPayload BestBlock;
         String MiningAddress;
         
-        public MinerManager(NetworkConfiguration networkConfig)
+        public MinerManager(ProtocolConfiguration protocolConfig)
         {
-            CPUMiner = new Miner(networkConfig);
+            CPUMiner = new Miner(protocolConfig);
             NewMiner?.Invoke(this, new NewMinerEventArgs(CPUMiner));
         }
 
