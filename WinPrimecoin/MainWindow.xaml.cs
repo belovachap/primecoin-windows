@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Numerics;
 using Blockchain;
 using Connection;
+using Miner;
 
 
 namespace WinPrimecoin
@@ -17,21 +18,11 @@ namespace WinPrimecoin
     {
         ConnectionManager Connections;
         BlockchainManager Blockchains;
+        MinerManager Miners;
 
         public MainWindow(Boolean useTestnet)
         {
             InitializeComponent();
-
-            ConnectionListBox.SelectionChanged +=
-                new SelectionChangedEventHandler(HandleConnectionSelectionChanged);
-            ConnectionMessagesOutListBox.SelectionChanged +=
-                new SelectionChangedEventHandler(HandleMessagesOutSelectionChanged);
-            ConnectionMessagesInListBox.SelectionChanged +=
-                new SelectionChangedEventHandler(HandleMessagesInSelectionChanged);
-
-            Blockchains = new BlockchainManager();
-            Blockchains.NewBlockchain += new EventHandler<NewBlockchainEventArgs>(HandleNewBlockchain);
-            Blockchains.NewBestBlock += new EventHandler<NewBestBlockEventArgs>(HandleNewBestBlock);
 
             NetworkConfiguration networkConfig;
             if (useTestnet)
@@ -60,8 +51,25 @@ namespace WinPrimecoin
                     maximumChainOrigin: new BigInteger(1) << 2000 - 1
                 );
             }
+
+            ConnectionListBox.SelectionChanged +=
+                new SelectionChangedEventHandler(HandleConnectionSelectionChanged);
+            ConnectionMessagesOutListBox.SelectionChanged +=
+                new SelectionChangedEventHandler(HandleMessagesOutSelectionChanged);
+            ConnectionMessagesInListBox.SelectionChanged +=
+                new SelectionChangedEventHandler(HandleMessagesInSelectionChanged);
+
+            Miners = new MinerManager(networkConfig);
+            MinerListBox.Items.Add(Miners.CPUMiner);
+
+            Blockchains = new BlockchainManager();
+            Blockchains.NewBlockchain += new EventHandler<NewBlockchainEventArgs>(HandleNewBlockchain);
+            Blockchains.NewBestBlock += new EventHandler<NewBestBlockEventArgs>(HandleNewBestBlock);
+            Blockchains.NewBestBlock += new EventHandler<NewBestBlockEventArgs>(Miners.HandleNewBestBlock);
+            
             Connections = new ConnectionManager(networkConfig);
             Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(Blockchains.HandleNewConnection);
+            Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(Miners.HandleNewConnection);
             Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(HandleNewConnection);
 
             Connections.Start();
