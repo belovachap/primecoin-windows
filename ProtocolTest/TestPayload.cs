@@ -14,6 +14,12 @@ namespace ProtocolTest
             }
         }
 
+        public static void AssertDifficulyPayloadsEqual(DifficultyPayload expected, DifficultyPayload actual)
+        {
+            Assert.AreEqual(expected.Length, actual.Length);
+            Assert.AreEqual(expected.Fraction, actual.Fraction);
+        }
+
         public static void AssertIntegerPayloadsEqual(IntegerPayload expected, IntegerPayload actual)
         {
             Assert.AreEqual(expected.Integer, actual.Integer);

@@ -21,25 +21,29 @@ namespace Protocol
             BiTwin,
         };
 
-        public static List<UInt32> PrimeNumbers = new List<UInt32> {
-              2,   3,   5,   7,  11,  13,  17,  19,  23,  29,
-             31,  37,  41,  43,  47,  53,  59,  61,  67,  71,
-             73,  79,  83,  89,  97, 101, 103, 107, 109, 113,
-            127, 131, 137, 139, 149, 151, 157, 163, 167, 173,
-            179, 181, 191, 193, 197, 199, 211, 223, 227, 229,
-            233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
-            283, 293, 307, 311, 313, 317, 331, 337, 347, 349,
-            353, 359, 367, 373, 379, 383, 389, 397, 401, 409,
-            419, 421, 431, 433, 439, 443, 449, 457, 461, 463,
-            467, 479, 487, 491, 499, 503, 509, 521, 523, 541,
-            547, 557, 563, 569, 571, 577, 587, 593, 599, 601,
-            607, 613, 617, 619, 631, 641, 643, 647, 653, 659,
-            661, 673, 677, 683, 691, 701, 709, 719, 727, 733,
-            739, 743, 751, 757, 761, 769, 773, 787, 797, 809,
-            811, 821, 823, 827, 829, 839, 853, 857, 859, 863,
-            877, 881, 883, 887, 907, 911, 919, 929, 937, 941,
-            947, 953, 967, 971, 977, 983, 991, 997
-        };
+        public static List<UInt32> GeneratePrimes() {
+            return new List<UInt32> {
+                  2,   3,   5,   7,  11,  13,  17,  19,  23,  29,
+                 31,  37,  41,  43,  47,  53,  59,  61,  67,  71,
+                 73,  79,  83,  89,  97, 101, 103, 107, 109, 113,
+                127, 131, 137, 139, 149, 151, 157, 163, 167, 173,
+                179, 181, 191, 193, 197, 199, 211, 223, 227, 229,
+                233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
+                283, 293, 307, 311, 313, 317, 331, 337, 347, 349,
+                353, 359, 367, 373, 379, 383, 389, 397, 401, 409,
+                419, 421, 431, 433, 439, 443, 449, 457, 461, 463,
+                467, 479, 487, 491, 499, 503, 509, 521, 523, 541,
+                547, 557, 563, 569, 571, 577, 587, 593, 599, 601,
+                607, 613, 617, 619, 631, 641, 643, 647, 653, 659,
+                661, 673, 677, 683, 691, 701, 709, 719, 727, 733,
+                739, 743, 751, 757, 761, 769, 773, 787, 797, 809,
+                811, 821, 823, 827, 829, 839, 853, 857, 859, 863,
+                877, 881, 883, 887, 907, 911, 919, 929, 937, 941,
+                947, 953, 967, 971, 977, 983, 991, 997
+            };
+        }
+
+        public static List<UInt32> PrimeNumbers = GeneratePrimes();
 
         public static Byte[] MerkleRoot(List<TransactionPayload> txs)
         {
@@ -193,9 +197,7 @@ namespace Protocol
                 throw new TargetChainLengthTooBig();
             }
 
-            var headerHashBytes = block.HeaderHash().AsEnumerable();
-            headerHashBytes = headerHashBytes.Concat(new Byte[] { 0x00 });
-            var headerHash = new BigInteger(headerHashBytes.ToArray());
+            var headerHash = block.HeaderHash();
             if (headerHash < protocolConfig.MinimumHeaderHash)
             {
                 throw new BlockHeaderHashTooSmall();
@@ -286,10 +288,71 @@ namespace Protocol
             return result.Length == 1;
         }
 
-        public static BigInteger Primorial()
+        public static BigInteger Primorial(UInt32 p)
         {
-            return new BigInteger();
+            var primorial = new BigInteger(1);
+            foreach(UInt32 prime in PrimeNumbers)
+            {
+                if (prime > p)
+                {
+                    return primorial;
+                }
+                primorial *= prime;
+            }
+            throw new Exception("Exhausted PrimeNumbers list computing p#");
+        }
+
+        public static UInt64 BlockReward(DifficultyPayload difficulty)
+        {
+            const UInt64 COIN = 100000000;
+            const UInt64 CENT = 1000000;
+            const Int32 FRACTION_BITS = 24;
+
+            var reward = new BigInteger(999 * COIN);
+            reward = (reward << FRACTION_BITS) / difficulty.ToBits();
+            reward = (reward << FRACTION_BITS) / difficulty.ToBits();
+            reward = (reward / CENT) * CENT;
+            return (UInt64)reward;
+        }
+
+        public const Int64 TARGET_TIMESPAN = 7 * 24 * 60 * 60; // one week
+        public const Int64 TARGET_SPACING = 60; // one minute block spacing
+        public const Int64 TARGET_INTERVAL = TARGET_TIMESPAN / TARGET_SPACING;
+
+        public const Int32 FRACTION_BITS = 24;
+        public const UInt32 FRACTION_MASK = ((UInt32)1 << FRACTION_BITS) - 1;
+        public const UInt32 LENGTH_MASK = ~FRACTION_MASK;
+        public const UInt64 FRACTION_MAX = (UInt64)1 << (FRACTION_BITS + 32);
+        public const UInt64 FRACTION_MIN = (UInt64)1 << 32;
+        public const UInt64 FRACTION_THRESHOLD = (UInt64)1 << (8 + 32);
+
+        public static DifficultyPayload NextDifficulty(DifficultyPayload difficulty, Int64 blockSpacing)
+        {
+            var fraction = new BigInteger(difficulty.GetFractionalDifficulty());
+            fraction *= ((TARGET_INTERVAL + 1) * TARGET_SPACING);
+            fraction /= ((TARGET_INTERVAL - 1) * TARGET_SPACING + blockSpacing + blockSpacing);
+            if (fraction > FRACTION_MAX)
+            {
+                fraction = FRACTION_MAX;
+            }
+            else if (fraction < FRACTION_MIN)
+            {
+                fraction = FRACTION_MIN;
+            }
+            
+            UInt64 newFraction = (UInt64)fraction;
+            if (newFraction > FRACTION_THRESHOLD)
+            {
+                difficulty.Length++;
+                newFraction = FRACTION_MIN;
+            }
+            else if (newFraction == FRACTION_MIN)
+            {
+                difficulty.Length--;
+                newFraction = FRACTION_THRESHOLD;
+            }
+            difficulty.SetFractionalDifficulty(newFraction);
+            return difficulty;
         }
     }
-
 }

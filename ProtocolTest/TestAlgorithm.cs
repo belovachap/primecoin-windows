@@ -11,6 +11,56 @@ namespace ProtocolTest
     public class TestAlgorithm
     {
         [TestMethod]
+        public void TestPrimorialSuccess()
+        {
+            // 1# = 1
+            Assert.AreEqual<BigInteger>(new BigInteger(1), Algorithm.Primorial(1));
+            // 10# = 2 * 3 * 5 * 7 = 210
+            Assert.AreEqual<BigInteger>(new BigInteger(210), Algorithm.Primorial(10));
+        }
+
+        [TestMethod]
+        public void TestBlockRewardSuccess()
+        {
+            // Data from C++ Client on Testnet
+            // TargetGetMint(nBits = 100546586) = 2781000000
+            var difficulty = new DifficultyPayload(100546586);
+            Assert.AreEqual<UInt64>(2781000000, Algorithm.BlockReward(difficulty));
+        }
+
+        [TestMethod]
+        public void TestNextDifficultySuccess()
+        {
+            // Data from C++ Client on Testnet
+            // TargetGetNext(nBits = 100546586, nInterval = 10080, nTargetSpacing = 60, nActualSpacing = 103)
+            // nBitsNext = 100546570
+            var expected = new DifficultyPayload(100546570);
+            var actual = Algorithm.NextDifficulty(new DifficultyPayload(100546586), 103);
+            TestPayload.AssertDifficulyPayloadsEqual(expected, actual);
+
+            // Data from C++ Client on Testnet
+            // TargetGetNext(nBits = 113526130, nInterval = 10080, nTargetSpacing = 60, nActualSpacing = 6)
+            // nBitsNext = 113526829
+            expected = new DifficultyPayload(113526829);
+            actual = Algorithm.NextDifficulty(new DifficultyPayload(113526130), 6);
+            TestPayload.AssertDifficulyPayloadsEqual(expected, actual);
+
+            // Data from C++ Client on Testnet
+            // TargetGetNext(nBits = 113524601, nInterval = 10080, nTargetSpacing = 60, nActualSpacing = -1)
+            // nBitsNext = 113525391
+            expected = new DifficultyPayload(113525391);
+            actual = Algorithm.NextDifficulty(new DifficultyPayload(113524601), -1);
+            TestPayload.AssertDifficulyPayloadsEqual(expected, actual);
+
+            // Data from C++ Client on Testnet
+            // TargetGetNext(nBits = 113527199, nInterval = 10080, nTargetSpacing = 60, nActualSpacing = 373)
+            // nBitsNext = 113523149
+            expected = new DifficultyPayload(113523149);
+            actual = Algorithm.NextDifficulty(new DifficultyPayload(113527199), 373);
+            TestPayload.AssertDifficulyPayloadsEqual(expected, actual);
+        }
+
+        [TestMethod]
         public void TestCheckProofOfWorkFailure()
         {
             // Target Chain Length too small

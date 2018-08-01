@@ -11,7 +11,7 @@ namespace ProtocolTest
     public class TestBlockPayload
     {
         [TestMethod]
-        public void TestSuccess()
+        public void TestBlockPayloadSuccess()
         {
             BlockPayload payload;
             byte[] expected;

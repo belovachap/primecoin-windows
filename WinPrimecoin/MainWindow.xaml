@@ -46,33 +46,62 @@
                     </Grid.ColumnDefinitions>
                     <ListBox x:Name="BlockchainListBox" HorizontalAlignment="Left" Height="351" VerticalAlignment="Top" Width="376" Margin="10,10,0,0" Grid.ColumnSpan="3"/>
                     <Label Content="Received:" HorizontalAlignment="Left" Height="28" Margin="216,10,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
-                    <TextBlock x:Name="BestBlockReceivedTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,15,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
+                    <TextBlock x:Name="BestBlockReceivedTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
                     <Label Content="Version:" HorizontalAlignment="Left" Height="28" Margin="216,38,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
-                    <TextBlock x:Name="BestBlockVersionTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,43,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
-                    <Label Content="TimeStamp:" HorizontalAlignment="Left" Height="28" Margin="216,66,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
-                    <TextBlock x:Name="BestBlockTimeStampTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,71,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
-                    <Label Content="Bits:" HorizontalAlignment="Left" Height="28" Margin="216,94,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
-                    <TextBlock x:Name="BestBlockBitsTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,99,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
-                    <Label Content="Nonce:" HorizontalAlignment="Left" Height="28" Margin="216,122,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
-                    <TextBlock x:Name="BestBlockNonceTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,127,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
-                    <Label Content="PCM:" HorizontalAlignment="Left" Height="28" Margin="216,150,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
-                    <TextBlock x:Name="BestBlockPCMTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,155,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
-                    <Label Content="Transactions:" HorizontalAlignment="Left" Height="28" Margin="216,178,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
-                    <TextBlock x:Name="BestBlockTransactionsTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,183,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
-                    <Label Content="MerkleRoot:" HorizontalAlignment="Left" Height="28" Margin="216,206,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
-                    <TextBlock x:Name="BestBlockMerkleRootTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,211,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
-                    <Label Content="HeaderHash:" HorizontalAlignment="Left" Height="28" Margin="216,234,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
-                    <TextBlock x:Name="BestBlockHeaderHashTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,239,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
+                    <TextBlock x:Name="BestBlockVersionTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
+                    <Label Content="TimeStamp:" HorizontalAlignment="Left" Height="28" Margin="216,94,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
+                    <TextBlock x:Name="BestBlockTimeStampTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,94,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
+                    <Label Content="Bits:" HorizontalAlignment="Left" Height="28" Margin="216,122,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
+                    <TextBlock x:Name="BestBlockBitsTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,122,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
+                    <Label Content="Nonce:" HorizontalAlignment="Left" Height="28" Margin="216,150,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
+                    <TextBlock x:Name="BestBlockNonceTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,150,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
+                    <Label Content="PCM:" HorizontalAlignment="Left" Height="28" Margin="216,178,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
+                    <TextBlock x:Name="BestBlockPCMTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,178,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
+                    <Label Content="Transactions:" HorizontalAlignment="Left" Height="28" Margin="216,206,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
+                    <TextBlock x:Name="BestBlockTransactionsTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,211,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
+                    <Label Content="MerkleRoot:" HorizontalAlignment="Left" Height="28" Margin="216,234,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
+                    <TextBlock x:Name="BestBlockMerkleRootTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,234,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
+                    <Label Content="HeaderHash:" HorizontalAlignment="Left" Height="28" Margin="216,262,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
+                    <TextBlock x:Name="BestBlockHeaderHashTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,262,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
+                    <Label Content="PrevBlockHash:" HorizontalAlignment="Left" Height="28" Margin="216,66,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
+                    <TextBlock x:Name="BestBlockPrevBlockHashTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
+                    <Label Content="BlockHash:" HorizontalAlignment="Left" Height="28" Margin="216,290,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="2"/>
+                    <TextBlock x:Name="BestBlockBlockHashTextBlock" HorizontalAlignment="Left" Height="28" Margin="327,290,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="2"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="MinersTabItem" Header="Miners">
                 <Grid Background="#FFE5E5E5">
-                    <ListBox x:Name="MinerListBox" HorizontalAlignment="Left" Height="318" VerticalAlignment="Top" Width="376" Margin="10,43,0,0"/>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="119*"/>
+                        <ColumnDefinition Width="647*"/>
+                    </Grid.ColumnDefinitions>
+                    <ListBox x:Name="MinerListBox" HorizontalAlignment="Left" Height="318" VerticalAlignment="Top" Width="376" Margin="10,43,0,0" Grid.ColumnSpan="2"/>
                     <Label Content="Mining Address:" HorizontalAlignment="Left" Height="28" Margin="10,10,0,0" VerticalAlignment="Top" Width="96" HorizontalContentAlignment="Right"/>
-                    <TextBox x:Name="MiningAddressTextBox" HorizontalAlignment="Left" Height="19" Margin="111,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="275"/>
+                    <TextBox x:Name="MiningAddressTextBox" HorizontalAlignment="Left" Height="19" Margin="111,14,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="275" Grid.ColumnSpan="2"/>
+                    <Label Content="Received:" HorizontalAlignment="Left" Height="28" Margin="272,10,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="1"/>
+                    <TextBlock x:Name="NewBlockMinedReceivedTextBlock" HorizontalAlignment="Left" Height="28" Margin="383,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="1"/>
+                    <Label Content="Version:" HorizontalAlignment="Left" Height="28" Margin="272,38,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="1"/>
+                    <TextBlock x:Name="NewBlockMinedVersionTextBlock" HorizontalAlignment="Left" Height="28" Margin="383,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="1"/>
+                    <Label Content="PrevBlockHash:" HorizontalAlignment="Left" Height="28" Margin="272,66,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="1"/>
+                    <TextBlock x:Name="NewBlockMinedTimeStampTextBlock" HorizontalAlignment="Left" Height="28" Margin="383,94,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="1"/>
+                    <Label Content="Bits:" HorizontalAlignment="Left" Height="28" Margin="272,122,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="1"/>
+                    <TextBlock x:Name="NewBlockMinedBitsTextBlock" HorizontalAlignment="Left" Height="28" Margin="383,122,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="1"/>
+                    <Label Content="Nonce:" HorizontalAlignment="Left" Height="28" Margin="272,150,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="1"/>
+                    <TextBlock x:Name="NewBlockMinedNonceTextBlock" HorizontalAlignment="Left" Height="28" Margin="383,150,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="1"/>
+                    <Label Content="PCM:" HorizontalAlignment="Left" Height="28" Margin="272,178,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="1"/>
+                    <TextBlock x:Name="NewBlockMinedPCMTextBlock" HorizontalAlignment="Left" Height="28" Margin="383,178,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="1"/>
+                    <Label Content="Transactions:" HorizontalAlignment="Left" Height="28" Margin="272,206,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="1"/>
+                    <TextBlock x:Name="NewBlockMinedTransactionsTextBlock" HorizontalAlignment="Left" Height="28" Margin="383,206,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="1"/>
+                    <Label Content="MerkleRoot:" HorizontalAlignment="Left" Height="28" Margin="272,234,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="1"/>
+                    <TextBlock x:Name="NewBlockMinedMerkleRootTextBlock" HorizontalAlignment="Left" Height="28" Margin="383,234,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="1"/>
+                    <Label Content="HeaderHash:" HorizontalAlignment="Left" Height="28" Margin="272,262,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="1"/>
+                    <TextBlock x:Name="NewBlockMinedHeaderHashTextBlock" HorizontalAlignment="Left" Height="28" Margin="383,262,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="1"/>
+                    <Label Content="TimeStamp:" HorizontalAlignment="Left" Height="28" Margin="272,94,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="1"/>
+                    <Label Content="BlockHash:" HorizontalAlignment="Left" Height="28" Margin="272,290,0,0" VerticalAlignment="Top" Width="106" HorizontalContentAlignment="Right" Grid.Column="1"/>
+                    <TextBlock x:Name="NewBlockMinedBlockHashTextBlock" HorizontalAlignment="Left" Height="28" Margin="383,290,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="1"/>
+                    <TextBlock x:Name="NewBlockMinedPrevBlockHashTextBlock" HorizontalAlignment="Left" Height="28" Margin="383,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Grid.Column="1"/>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="WalletsTabItem" Header="Wallets"/>
         </TabControl>
 
     </Grid>

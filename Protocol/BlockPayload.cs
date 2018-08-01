@@ -11,8 +11,8 @@ namespace Protocol
 
         public Int32 Version { get; }
         public Byte[] PreviousBlockHash { get; }
-        public UInt32 TimeStamp { get; }
-        public UInt32 Bits { get; }
+        public UInt32 TimeStamp;
+        public UInt32 Bits;
         public UInt32 Nonce;
         public BigInteger PrimeChainMultiplier;
         public List<TransactionPayload> Transactions { get; }
@@ -105,7 +105,13 @@ namespace Protocol
             return bytes.ToArray();
         }
 
-        public Byte[] HeaderHash()
+        public BigInteger HeaderHash()
+        {
+            var bytes = HeaderHashBytes().AsEnumerable().Concat(new Byte[] { 0x00 });
+            return new BigInteger(bytes.ToArray());
+        }
+
+        public Byte[] HeaderHashBytes()
         {
             var version = BitConverter.GetBytes(Version);
             var timeStamp = BitConverter.GetBytes(TimeStamp);

@@ -25,6 +25,7 @@ namespace Blockchain
         List<Blockchain> Blockchains;
         List<BlockPayload> BlockchainsBestBlock;
         BlockPayload BestBlock;
+        Int64 SecondsSinceLastBlock;
 
         public BlockchainManager()
         {
@@ -52,7 +53,8 @@ namespace Blockchain
                 BlockchainsBestBlock[index] = a.Block;
                 // Signal as newest block b/c lazy for a second...
                 BestBlock = a.Block;
-                NewBestBlock?.Invoke(this, new NewBestBlockEventArgs(BestBlock));
+                SecondsSinceLastBlock = a.SecondsSinceLastBlock;
+                NewBestBlock?.Invoke(this, a);
             }
         }
     }

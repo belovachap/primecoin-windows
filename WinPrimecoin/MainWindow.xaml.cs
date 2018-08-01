@@ -65,6 +65,7 @@ namespace WinPrimecoin
 
             Miners = new MinerManager(protocolConfig);
             MinerListBox.Items.Add(Miners.CPUMiner);
+            Miners.NewBlockMined += new EventHandler<NewBlockMinedEventArgs>(HandleNewBlockMined);
 
             Blockchains = new BlockchainManager();
             Blockchains.NewBlockchain += new EventHandler<NewBlockchainEventArgs>(HandleNewBlockchain);
@@ -95,13 +96,33 @@ namespace WinPrimecoin
             {
                 BestBlockReceivedTextBlock.Text = DateTime.Now.ToString();
                 BestBlockVersionTextBlock.Text = a.Block.Version.ToString();
+                BestBlockPrevBlockHashTextBlock.Text = a.Block.PreviousBlockHash.ToString();
                 BestBlockTimeStampTextBlock.Text = a.Block.TimeStamp.ToString();
                 BestBlockBitsTextBlock.Text = a.Block.Bits.ToString();
                 BestBlockNonceTextBlock.Text = a.Block.Nonce.ToString();
                 BestBlockPCMTextBlock.Text = a.Block.PrimeChainMultiplier.ToString();
                 BestBlockTransactionsTextBlock.Text = a.Block.Transactions.Count.ToString();
                 BestBlockMerkleRootTextBlock.Text = BitConverter.ToString(a.Block.MerkleRoot).Replace("-", string.Empty);
-                BestBlockHeaderHashTextBlock.Text = BitConverter.ToString(a.Block.Hash()).Replace("-", string.Empty);
+                BestBlockHeaderHashTextBlock.Text = BitConverter.ToString(a.Block.HeaderHashBytes()).Replace("-", string.Empty);
+                BestBlockBlockHashTextBlock.Text = BitConverter.ToString(a.Block.Hash()).Replace("-", string.Empty);
+            });
+        }
+
+        void HandleNewBlockMined(object sender, NewBlockMinedEventArgs a)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                NewBlockMinedReceivedTextBlock.Text = DateTime.Now.ToString();
+                NewBlockMinedVersionTextBlock.Text = a.Block.Version.ToString();
+                NewBlockMinedPrevBlockHashTextBlock.Text = a.Block.PreviousBlockHash.ToString();
+                NewBlockMinedTimeStampTextBlock.Text = a.Block.TimeStamp.ToString();
+                NewBlockMinedBitsTextBlock.Text = a.Block.Bits.ToString();
+                NewBlockMinedNonceTextBlock.Text = a.Block.Nonce.ToString();
+                NewBlockMinedPCMTextBlock.Text = a.Block.PrimeChainMultiplier.ToString();
+                NewBlockMinedTransactionsTextBlock.Text = a.Block.Transactions.Count.ToString();
+                NewBlockMinedMerkleRootTextBlock.Text = BitConverter.ToString(a.Block.MerkleRoot).Replace("-", string.Empty);
+                NewBlockMinedHeaderHashTextBlock.Text = BitConverter.ToString(a.Block.HeaderHashBytes()).Replace("-", string.Empty);
+                NewBlockMinedBlockHashTextBlock.Text = BitConverter.ToString(a.Block.Hash()).Replace("-", string.Empty);
             });
         }
 

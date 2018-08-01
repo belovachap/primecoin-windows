@@ -11,6 +11,26 @@ namespace Protocol
         public Byte Length;
         public UInt32 Fraction;
 
+        public UInt64 GetFractionalDifficulty()
+        {
+            return Algorithm.FRACTION_MAX / (((UInt64)1 << Algorithm.FRACTION_BITS) - Fraction);
+        }
+
+        public void SetFractionalDifficulty(UInt64 fractionalDifficulty)
+        {
+            if (fractionalDifficulty < Algorithm.FRACTION_MIN)
+            {
+                throw new Exception("SetFractionalDifficulty() : difficulty below min");
+            }
+                
+            UInt64 fraction = Algorithm.FRACTION_MAX / fractionalDifficulty;
+            if (fraction > ((UInt32)1 << Algorithm.FRACTION_BITS))
+            {
+                throw new Exception("SetFractionalDifficulty() : fractional overflow");
+            }
+            Fraction = ((UInt32)1 << Algorithm.FRACTION_BITS) - (UInt32)fraction;
+        }
+
         public DifficultyPayload(Byte length, UInt32 fraction)
         {
             Length = length;
@@ -19,11 +39,8 @@ namespace Protocol
 
         public DifficultyPayload(UInt32 bits)
         {
-            var bytes = BitConverter.GetBytes(bits);
-            Length = bytes[3];
-
-            bytes[3] = 0x00;
-            Fraction = BitConverter.ToUInt32(bytes, 0);
+            Length = (Byte)(bits >> Algorithm.FRACTION_BITS);
+            Fraction = bits & Algorithm.FRACTION_MASK;
         }
 
         public UInt32 ToBits()

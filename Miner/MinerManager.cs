@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
+using System.Threading.Tasks;
 
 using Blockchain;
 using Connection;
@@ -29,6 +31,7 @@ namespace Miner
     public class MinerManager
     {
         public event EventHandler<NewMinerEventArgs> NewMiner;
+        public event EventHandler<NewBlockMinedEventArgs> NewBlockMined;
 
         public Miner CPUMiner;
 
@@ -37,11 +40,13 @@ namespace Miner
 
         object DataLock = new Object();
         BlockPayload BestBlock;
+        Int64 SecondsSinceLastBlock;
         String MiningAddress;
         
         public MinerManager(ProtocolConfiguration protocolConfig)
         {
             CPUMiner = new Miner(protocolConfig);
+            CPUMiner.NewBlockMined += new EventHandler<NewBlockMinedEventArgs>(HandleNewBlockMined);
             NewMiner?.Invoke(this, new NewMinerEventArgs(CPUMiner));
         }
 
@@ -56,13 +61,29 @@ namespace Miner
 
         public void HandleNewBestBlock(object sender, NewBestBlockEventArgs a)
         {
+            return;
             lock (DataLock)
             {
-                // CPUMiner.Stop();
                 BestBlock = a.Block;
+                CPUMiner.Stop();
                 // Check if we have a good mining address.
-                // Generate new block header to mine on.
-                // CPUMiner.Start(newBlockHeader);
+                // Generate new block to mine on.
+                var difficulty = new DifficultyPayload(BestBlock.Bits);
+                difficulty.Length++;
+                difficulty.Fraction = 0;
+
+                // TODO fill in the Coinbase transaction
+
+                var miningBlock = new BlockPayload(
+                    version: 2,
+                    previousBlockHash: BestBlock.Hash(),
+                    timeStamp: (UInt32)DateTime.UtcNow.Ticks,
+                    bits: difficulty.ToBits(),
+                    nonce: 0,
+                    primeChainMultiplier: new BigInteger(1),
+                    txs: new List<TransactionPayload>()
+                );
+                Task.Run(() => CPUMiner.Start(miningBlock));
             }
         }
 
@@ -83,6 +104,7 @@ namespace Miner
             lock (ConnectionsLock)
             {
                 // Attempt to broadcast block message to connections.
+                NewBlockMined?.Invoke(this, a);
             }
         }
     }
