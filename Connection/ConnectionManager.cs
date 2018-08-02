@@ -10,11 +10,11 @@ namespace Connection
 
     public class NewConnectionEventArgs : EventArgs
     {
-        public Connection Connect;
+        public Connection Connection;
 
         public NewConnectionEventArgs(Connection connection)
         {
-            Connect = connection;  
+            Connection = connection;  
         }
     }
 

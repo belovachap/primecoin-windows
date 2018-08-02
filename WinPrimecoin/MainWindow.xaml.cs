@@ -73,16 +73,16 @@ namespace WinPrimecoin
             Blockchains.NewBestBlock += new EventHandler<NewBestBlockEventArgs>(Miners.HandleNewBestBlock);
             
             Connections = new ConnectionManager(connectionConfig, protocolConfig);
-            Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(Blockchains.HandleNewConnection);
             Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(Miners.HandleNewConnection);
             Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(HandleNewConnection);
+            Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(Blockchains.HandleNewConnection);
 
             Connections.Start();
         }
 
         void HandleNewConnection(object sender, NewConnectionEventArgs a)
         {
-            ConnectionListBox.Items.Add(a.Connect);
+            ConnectionListBox.Items.Add(a.Connection);
         }
 
         void HandleNewBlockchain(object sender, NewBlockchainEventArgs a)

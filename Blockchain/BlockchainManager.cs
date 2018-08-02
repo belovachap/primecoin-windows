@@ -37,7 +37,7 @@ namespace Blockchain
         {
             lock(DataLock)
             {
-                var blockchain = new Blockchain(a.Connect);
+                var blockchain = new Blockchain(a.Connection);
                 Blockchains.Add(blockchain);
                 BlockchainsBestBlock.Add(null);
                 blockchain.NewBestBlock += new EventHandler<NewBestBlockEventArgs>(HandleNewBestBlock);

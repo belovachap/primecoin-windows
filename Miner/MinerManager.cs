@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Blockchain;
@@ -45,6 +46,7 @@ namespace Miner
         
         public MinerManager(ProtocolConfiguration protocolConfig)
         {
+            Connections = new List<Connection.Connection>();
             CPUMiner = new Miner(protocolConfig);
             CPUMiner.NewBlockMined += new EventHandler<NewBlockMinedEventArgs>(HandleNewBlockMined);
             NewMiner?.Invoke(this, new NewMinerEventArgs(CPUMiner));
@@ -55,7 +57,10 @@ namespace Miner
             lock (ConnectionsLock)
             {
                 // Remove all dead connections.
+                Connections = Connections.Where(c => c.Alive).ToList();
+
                 // Add new connection.
+                Connections.Add(a.Connection);
             }
         }
 
@@ -103,9 +108,18 @@ namespace Miner
         {
             lock (ConnectionsLock)
             {
-                // Attempt to broadcast block message to connections.
-                NewBlockMined?.Invoke(this, a);
+                // Remove all dead connections.
+                Connections = Connections.Where(c => c.Alive).ToList();
+
+                // Broadcast new block!
+                foreach (var c in Connections)
+                {
+                    c.SendBlockMessage(a.Block);
+                }
             }
+
+            // Notify watchers that a new block was mined and broadcast.
+            NewBlockMined?.Invoke(this, a);
         }
     }
 }

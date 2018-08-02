@@ -187,6 +187,12 @@ namespace Connection
             );
         }
 
+        public void SendBlockMessage(BlockPayload blockPayload)
+        {
+            var message = new MessagePayload(ProtocolConfig.Magic, "block", blockPayload);
+            SendMessage(message);
+        }
+
         public void SendGetDataMessage(InvPayload invPayload)
         {
             var message = new MessagePayload(ProtocolConfig.Magic, "getdata", invPayload);
