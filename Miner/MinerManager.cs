@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Base58Check;
+
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Linq;
@@ -29,6 +31,7 @@ namespace Miner
             MiningAddress = miningAddress;
         }
     }
+
     public class MinerManager
     {
         public event EventHandler<NewMinerEventArgs> NewMiner;
@@ -42,10 +45,12 @@ namespace Miner
         object DataLock = new Object();
         BlockPayload BestBlock;
         Int64 SecondsSinceLastBlock;
-        String MiningAddress;
-        
+        public Byte[] MineToPublicKeyHash;
+        ProtocolConfiguration ProtocolConfig;
+
         public MinerManager(ProtocolConfiguration protocolConfig)
         {
+            ProtocolConfig = protocolConfig;
             Connections = new List<Connection.Connection>();
             CPUMiner = new Miner(protocolConfig);
             CPUMiner.NewBlockMined += new EventHandler<NewBlockMinedEventArgs>(HandleNewBlockMined);
@@ -92,15 +97,47 @@ namespace Miner
             }
         }
 
-        public void HandleNewMiningAddress(object sender, NewMiningAddressEventArgs a)
+        public void HandleNewMiningAddress(String miningAddress)
         {
             lock (DataLock)
             {
-                // CPUMiner.Stop();
-                MiningAddress = a.MiningAddress;
-                // Check if address is good.
+                CPUMiner.Stop();
+
+                // Extract Public Key Hash from Primecoin Address.
+                Byte[] addressBytes;
+                try
+                {
+                    addressBytes = Base58CheckEncoding.Decode(miningAddress);
+                }
+                catch
+                {
+                    MineToPublicKeyHash = null;
+                    return;
+                }
+                
+                var idByte = addressBytes.Take(1).Single<Byte>();
+                if (idByte != ProtocolConfig.PublicKeyID)
+                {
+                    MineToPublicKeyHash = null;
+                    return;
+                }
+                MineToPublicKeyHash = addressBytes.Skip(1).Take(20).ToArray();
+
+                // Generate new Coinbase transaction
+                // beep boop, we can probably use format substituion
+                // once we know what this scrip looks like in bytes.
+
                 // Generate new block header to mine on.
-                // CPUMiner.Start(newBlockHeader);
+                //var miningBlock = new BlockPayload(
+                //    version: 2,
+                //    previousBlockHash: BestBlock.Hash(),
+                //    timeStamp: (UInt32)DateTime.UtcNow.Ticks,
+                //    bits: difficulty.ToBits(),
+                //    nonce: 0,
+                //    primeChainMultiplier: new BigInteger(1),
+                //    txs: new List<TransactionPayload>()
+                //);
+                //CPUMiner.Start(miningBlock);
             }
         }
 

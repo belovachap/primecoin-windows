@@ -8,7 +8,6 @@ namespace Protocol
 {
     public class BlockPayload : Payload
     {
-
         public Int32 Version { get; }
         public Byte[] PreviousBlockHash { get; }
         public UInt32 TimeStamp;

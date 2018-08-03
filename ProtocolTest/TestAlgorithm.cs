@@ -73,14 +73,7 @@ namespace ProtocolTest
                 primeChainMultiplier: new BigInteger(),
                 txs: null
             );
-            var protocolConfig = new ProtocolConfiguration(
-                magic: 0xE7E5E7E4,
-                minimumChainLength: 6,
-                maximumChainLength: 99,
-                minimumHeaderHash: new BigInteger(1) << 255,
-                minimumChainOrigin: new BigInteger(1) << 255,
-                maximumChainOrigin: new BigInteger(1) << 2000 - 1
-            );
+            var protocolConfig = ProtocolConfiguration.MainnetConfig();
             Assert.ThrowsException<Algorithm.TargetChainLengthTooSmall>(
                 () => Algorithm.CheckProofOfWork(block, protocolConfig)
             );

@@ -31,14 +31,7 @@ namespace WinPrimecoin
                     defaultPort: 9913,
                     dnsSeed: "tseed.primecoin.me"
                 );
-                protocolConfig = new ProtocolConfiguration(
-                    magic: 0xC3CBFEFB,
-                    minimumChainLength: 2,
-                    maximumChainLength: 99,
-                    minimumHeaderHash: new BigInteger(1) << 255,
-                    minimumChainOrigin: new BigInteger(1) << 255,
-                    maximumChainOrigin: new BigInteger(1) << 2000 - 1
-                );
+                protocolConfig = ProtocolConfiguration.TestnetConfig();
             }
             else
             {
@@ -46,14 +39,7 @@ namespace WinPrimecoin
                     defaultPort: 9911,
                     dnsSeed: "seed.primecoin.me"
                 );
-                protocolConfig = new ProtocolConfiguration(
-                    magic: 0xE7E5E7E4,
-                    minimumChainLength: 6,
-                    maximumChainLength: 99,
-                    minimumHeaderHash: new BigInteger(1) << 255,
-                    minimumChainOrigin: new BigInteger(1) << 255,
-                    maximumChainOrigin: new BigInteger(1) << 2000 - 1
-                );
+                protocolConfig = ProtocolConfiguration.MainnetConfig();
             }
 
             ConnectionListBox.SelectionChanged +=
@@ -64,8 +50,9 @@ namespace WinPrimecoin
                 new SelectionChangedEventHandler(HandleMessagesInSelectionChanged);
 
             Miners = new MinerManager(protocolConfig);
-            MinerListBox.Items.Add(Miners.CPUMiner);
+            MiningAddressTextBox.TextChanged += new TextChangedEventHandler(HandleMiningAddressTextChanged);
             Miners.NewBlockMined += new EventHandler<NewBlockMinedEventArgs>(HandleNewBlockMined);
+            MinerListBox.Items.Add(Miners.CPUMiner);
 
             Blockchains = new BlockchainManager();
             Blockchains.NewBlockchain += new EventHandler<NewBlockchainEventArgs>(HandleNewBlockchain);
@@ -78,6 +65,19 @@ namespace WinPrimecoin
             Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(Blockchains.HandleNewConnection);
 
             Connections.Start();
+        }
+
+        void HandleMiningAddressTextChanged(object sender, TextChangedEventArgs a)
+        {
+            Miners.HandleNewMiningAddress(MiningAddressTextBox.Text);
+            if (Miners.MineToPublicKeyHash != null)
+            {
+                ValidatedMiningAddressTextBlock.Text = MiningAddressTextBox.Text;
+            }
+            else
+            {
+                ValidatedMiningAddressTextBlock.Text = "";
+            }
         }
 
         void HandleNewConnection(object sender, NewConnectionEventArgs a)

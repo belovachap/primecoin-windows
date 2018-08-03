@@ -134,14 +134,7 @@ namespace ProtocolTest
             TestPayload.AssertBytesEqual(expected, payload.ToBytes());
             TestPayload.AssertBlockPayloadsEqual(payload, new BlockPayload(expected));
 
-            var protocolConfig = new ProtocolConfiguration(
-                magic: 0xE7E5E7E4,
-                minimumChainLength: 6,
-                maximumChainLength: 99,
-                minimumHeaderHash: new BigInteger(1) << 255,
-                minimumChainOrigin: new BigInteger(1) << 255,
-                maximumChainOrigin: new BigInteger(1) << 2000 - 1
-            );
+            var protocolConfig = ProtocolConfiguration.MainnetConfig();
             Algorithm.CheckProofOfWork(payload, protocolConfig); // Should be a valid block.
         }
     }
