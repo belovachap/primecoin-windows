@@ -3,30 +3,37 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
+using Protocol;
+
 namespace Connection
 {
 
     public class NewConnectionEventArgs : EventArgs
     {
-        public Connection Connect;
+        public Connection Connection;
 
         public NewConnectionEventArgs(Connection connection)
         {
-            Connect = connection;  
+            Connection = connection;  
         }
     }
 
     public class ConnectionManager
     {
-        NetworkConfiguration NetworkConfig;
+        ConnectionConfiguration ConnectionConfig;
+        ProtocolConfiguration ProtocolConfig;
         List<IPAddress> DnsIPAddresses;
         public List<Connection> OutboundConnections;
 
         public event EventHandler<NewConnectionEventArgs> NewConnection;
 
-        public ConnectionManager(NetworkConfiguration networkConfig)
+        public ConnectionManager(
+            ConnectionConfiguration connectionConfig,
+            ProtocolConfiguration protocolConfig
+        )
         {
-            NetworkConfig = networkConfig;
+            ConnectionConfig = connectionConfig;
+            ProtocolConfig = protocolConfig;
             DnsIPAddresses = GetDnsIPAddresses();
             OutboundConnections = new List<Connection>();
         }
@@ -39,12 +46,13 @@ namespace Connection
                 try
                 {
                     var client = new TcpClient();
-                    client.Connect(toAddress, NetworkConfig.DefaultPort);
+                    client.Connect(toAddress, ConnectionConfig.DefaultPort);
                     var connection = new Connection(
                         from: IPAddress.Loopback,
                         to: toAddress,
-                        port: NetworkConfig.DefaultPort,
-                        networkConfig: NetworkConfig,
+                        port: ConnectionConfig.DefaultPort,
+                        connectionConfig: ConnectionConfig,
+                        protocolConfig: ProtocolConfig,
                         client: client
                     );
                     OutboundConnections.Add(connection);
@@ -67,7 +75,7 @@ namespace Connection
 
         public List<IPAddress> GetDnsIPAddresses()
         {
-            var host = Dns.GetHostEntry(NetworkConfig.DNSSeed);
+            var host = Dns.GetHostEntry(ConnectionConfig.DNSSeed);
             return new List<IPAddress>(host.AddressList);
         }
     }

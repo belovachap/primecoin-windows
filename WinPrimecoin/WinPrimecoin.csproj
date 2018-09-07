@@ -103,6 +103,14 @@
       <Project>{3905a3ea-5cc9-4fc8-ba8c-df4b6f5baa3e}</Project>
       <Name>Connection</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Miner\Miner.csproj">
+      <Project>{69cff08e-96bf-4839-a570-3d48bb023cf6}</Project>
+      <Name>Miner</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Protocol\Protocol.csproj">
+      <Project>{29498d6f-071d-43e5-a0f7-4369f78a4b7c}</Project>
+      <Name>Protocol</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

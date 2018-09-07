@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3905A3EA-5CC9-4FC8-BA8C-DF4B6F5BAA3E}</ProjectGuid>
+    <ProjectGuid>{69CFF08E-96BF-4839-A570-3D48BB023CF6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PrimeNetwork</RootNamespace>
-    <AssemblyName>PrimeNetwork</AssemblyName>
+    <RootNamespace>Miner</RootNamespace>
+    <AssemblyName>Miner</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,8 +30,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Base58Check, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Base58Check.0.2.0\lib\Net40\Base58Check.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -40,17 +44,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Connection.cs" />
-    <Compile Include="ConnectionConfiguration.cs" />
-    <Compile Include="ConnectionManager.cs" />
-    <Compile Include="MessageFramer.cs" />
+    <Compile Include="Miner.cs" />
+    <Compile Include="MinerManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Blockchain\Blockchain.csproj">
+      <Project>{62bbd29d-7847-4097-a84f-bf1da96dcdf4}</Project>
+      <Name>Blockchain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Connection\Connection.csproj">
+      <Project>{3905a3ea-5cc9-4fc8-ba8c-df4b6f5baa3e}</Project>
+      <Name>Connection</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Protocol\Protocol.csproj">
       <Project>{29498d6f-071d-43e5-a0f7-4369f78a4b7c}</Project>
       <Name>Protocol</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

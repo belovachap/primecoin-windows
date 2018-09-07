@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 
+using Protocol;
+
 namespace Connection
 {
     class MessageFramer

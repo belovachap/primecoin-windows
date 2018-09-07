@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Net;
-using System.Windows;
-using System.Collections.Generic;
-using System.Windows.Controls;
 using System.Numerics;
+using System.Windows;
+using System.Windows.Controls;
+
 using Blockchain;
 using Connection;
-
+using Miner;
+using Protocol;
 
 namespace WinPrimecoin
 {
@@ -17,10 +17,30 @@ namespace WinPrimecoin
     {
         ConnectionManager Connections;
         BlockchainManager Blockchains;
+        MinerManager Miners;
 
         public MainWindow(Boolean useTestnet)
         {
             InitializeComponent();
+
+            ConnectionConfiguration connectionConfig;
+            ProtocolConfiguration protocolConfig;
+            if (useTestnet)
+            {
+                connectionConfig = new ConnectionConfiguration(
+                    defaultPort: 9913,
+                    dnsSeed: "tseed.primecoin.me"
+                );
+                protocolConfig = ProtocolConfiguration.TestnetConfig();
+            }
+            else
+            {
+                connectionConfig = new ConnectionConfiguration(
+                    defaultPort: 9911,
+                    dnsSeed: "seed.primecoin.me"
+                );
+                protocolConfig = ProtocolConfiguration.MainnetConfig();
+            }
 
             ConnectionListBox.SelectionChanged +=
                 new SelectionChangedEventHandler(HandleConnectionSelectionChanged);
@@ -29,47 +49,40 @@ namespace WinPrimecoin
             ConnectionMessagesInListBox.SelectionChanged +=
                 new SelectionChangedEventHandler(HandleMessagesInSelectionChanged);
 
+            Miners = new MinerManager(protocolConfig);
+            MiningAddressTextBox.TextChanged += new TextChangedEventHandler(HandleMiningAddressTextChanged);
+            Miners.NewBlockMined += new EventHandler<NewBlockMinedEventArgs>(HandleNewBlockMined);
+            MinerListBox.Items.Add(Miners.CPUMiner);
+
             Blockchains = new BlockchainManager();
             Blockchains.NewBlockchain += new EventHandler<NewBlockchainEventArgs>(HandleNewBlockchain);
             Blockchains.NewBestBlock += new EventHandler<NewBestBlockEventArgs>(HandleNewBestBlock);
-
-            NetworkConfiguration networkConfig;
-            if (useTestnet)
-            {
-                networkConfig = new NetworkConfiguration(
-                    defaultPort: 9913,
-                    magic: 0xC3CBFEFB,
-                    dnsSeed: "tseed.primecoin.me",
-                    minimumChainLength: 2,
-                    maximumChainLength: 99,
-                    minimumHeaderHash: new BigInteger(1) << 255,
-                    minimumChainOrigin: new BigInteger(1) << 255,
-                    maximumChainOrigin: new BigInteger(1) << 2000 - 1
-                );
-            }
-            else
-            {
-                networkConfig = new NetworkConfiguration(
-                    defaultPort: 9911,
-                    magic: 0xE7E5E7E4,
-                    dnsSeed: "seed.primecoin.me",
-                    minimumChainLength: 6,
-                    maximumChainLength: 99,
-                    minimumHeaderHash: new BigInteger(1) << 255,
-                    minimumChainOrigin: new BigInteger(1) << 255,
-                    maximumChainOrigin: new BigInteger(1) << 2000 - 1
-                );
-            }
-            Connections = new ConnectionManager(networkConfig);
-            Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(Blockchains.HandleNewConnection);
+            Blockchains.NewBestBlock += new EventHandler<NewBestBlockEventArgs>(Miners.HandleNewBestBlock);
+            
+            Connections = new ConnectionManager(connectionConfig, protocolConfig);
+            Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(Miners.HandleNewConnection);
             Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(HandleNewConnection);
+            Connections.NewConnection += new EventHandler<NewConnectionEventArgs>(Blockchains.HandleNewConnection);
 
             Connections.Start();
         }
 
+        void HandleMiningAddressTextChanged(object sender, TextChangedEventArgs a)
+        {
+            Miners.HandleNewMiningAddress(MiningAddressTextBox.Text);
+            if (Miners.MineToPublicKeyHash != null)
+            {
+                ValidatedMiningAddressTextBlock.Text = MiningAddressTextBox.Text;
+            }
+            else
+            {
+                ValidatedMiningAddressTextBlock.Text = "";
+            }
+        }
+
         void HandleNewConnection(object sender, NewConnectionEventArgs a)
         {
-            ConnectionListBox.Items.Add(a.Connect);
+            ConnectionListBox.Items.Add(a.Connection);
         }
 
         void HandleNewBlockchain(object sender, NewBlockchainEventArgs a)
@@ -83,13 +96,33 @@ namespace WinPrimecoin
             {
                 BestBlockReceivedTextBlock.Text = DateTime.Now.ToString();
                 BestBlockVersionTextBlock.Text = a.Block.Version.ToString();
+                BestBlockPrevBlockHashTextBlock.Text = a.Block.PreviousBlockHash.ToString();
                 BestBlockTimeStampTextBlock.Text = a.Block.TimeStamp.ToString();
                 BestBlockBitsTextBlock.Text = a.Block.Bits.ToString();
                 BestBlockNonceTextBlock.Text = a.Block.Nonce.ToString();
                 BestBlockPCMTextBlock.Text = a.Block.PrimeChainMultiplier.ToString();
                 BestBlockTransactionsTextBlock.Text = a.Block.Transactions.Count.ToString();
                 BestBlockMerkleRootTextBlock.Text = BitConverter.ToString(a.Block.MerkleRoot).Replace("-", string.Empty);
-                BestBlockHeaderHashTextBlock.Text = BitConverter.ToString(a.Block.Hash()).Replace("-", string.Empty);
+                BestBlockHeaderHashTextBlock.Text = BitConverter.ToString(a.Block.HeaderHashBytes()).Replace("-", string.Empty);
+                BestBlockBlockHashTextBlock.Text = BitConverter.ToString(a.Block.Hash()).Replace("-", string.Empty);
+            });
+        }
+
+        void HandleNewBlockMined(object sender, NewBlockMinedEventArgs a)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                NewBlockMinedReceivedTextBlock.Text = DateTime.Now.ToString();
+                NewBlockMinedVersionTextBlock.Text = a.Block.Version.ToString();
+                NewBlockMinedPrevBlockHashTextBlock.Text = a.Block.PreviousBlockHash.ToString();
+                NewBlockMinedTimeStampTextBlock.Text = a.Block.TimeStamp.ToString();
+                NewBlockMinedBitsTextBlock.Text = a.Block.Bits.ToString();
+                NewBlockMinedNonceTextBlock.Text = a.Block.Nonce.ToString();
+                NewBlockMinedPCMTextBlock.Text = a.Block.PrimeChainMultiplier.ToString();
+                NewBlockMinedTransactionsTextBlock.Text = a.Block.Transactions.Count.ToString();
+                NewBlockMinedMerkleRootTextBlock.Text = BitConverter.ToString(a.Block.MerkleRoot).Replace("-", string.Empty);
+                NewBlockMinedHeaderHashTextBlock.Text = BitConverter.ToString(a.Block.HeaderHashBytes()).Replace("-", string.Empty);
+                NewBlockMinedBlockHashTextBlock.Text = BitConverter.ToString(a.Block.Hash()).Replace("-", string.Empty);
             });
         }
 

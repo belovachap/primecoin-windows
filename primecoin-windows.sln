@@ -7,9 +7,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blockchain", "Blockchain\Bl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Connection", "Connection\Connection.csproj", "{3905A3EA-5CC9-4FC8-BA8C-DF4B6F5BAA3E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectionTest", "ConnectionTest\ConnectionTest.csproj", "{CDB9167E-8BCC-4B74-B837-3B8D9F9F5343}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinPrimecoin", "WinPrimecoin\WinPrimecoin.csproj", "{F420695D-C246-475E-A94E-E3E5A89565C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Miner", "Miner\Miner.csproj", "{69CFF08E-96BF-4839-A570-3D48BB023CF6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Protocol", "Protocol\Protocol.csproj", "{29498D6F-071D-43E5-A0F7-4369F78A4B7C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtocolTest", "ProtocolTest\ProtocolTest.csproj", "{2F33E7B9-90A4-4502-8849-67BA2A1CA0B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,14 +29,22 @@ Global
 		{3905A3EA-5CC9-4FC8-BA8C-DF4B6F5BAA3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3905A3EA-5CC9-4FC8-BA8C-DF4B6F5BAA3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3905A3EA-5CC9-4FC8-BA8C-DF4B6F5BAA3E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CDB9167E-8BCC-4B74-B837-3B8D9F9F5343}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CDB9167E-8BCC-4B74-B837-3B8D9F9F5343}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CDB9167E-8BCC-4B74-B837-3B8D9F9F5343}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CDB9167E-8BCC-4B74-B837-3B8D9F9F5343}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F420695D-C246-475E-A94E-E3E5A89565C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F420695D-C246-475E-A94E-E3E5A89565C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F420695D-C246-475E-A94E-E3E5A89565C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F420695D-C246-475E-A94E-E3E5A89565C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69CFF08E-96BF-4839-A570-3D48BB023CF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69CFF08E-96BF-4839-A570-3D48BB023CF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69CFF08E-96BF-4839-A570-3D48BB023CF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69CFF08E-96BF-4839-A570-3D48BB023CF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29498D6F-071D-43E5-A0F7-4369F78A4B7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29498D6F-071D-43E5-A0F7-4369F78A4B7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29498D6F-071D-43E5-A0F7-4369F78A4B7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29498D6F-071D-43E5-A0F7-4369F78A4B7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F33E7B9-90A4-4502-8849-67BA2A1CA0B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F33E7B9-90A4-4502-8849-67BA2A1CA0B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F33E7B9-90A4-4502-8849-67BA2A1CA0B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F33E7B9-90A4-4502-8849-67BA2A1CA0B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

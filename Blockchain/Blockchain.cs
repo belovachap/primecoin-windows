@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using Connection;
+using Protocol;
 
 namespace Blockchain
 {
@@ -8,10 +10,12 @@ namespace Blockchain
     public class NewBestBlockEventArgs : EventArgs
     {
         public BlockPayload Block;
+        public Int64 SecondsSinceLastBlock;
 
-        public NewBestBlockEventArgs(BlockPayload block)
+        public NewBestBlockEventArgs(BlockPayload block, Int64 secondsSinceLastBlock)
         {
             Block = block;
+            SecondsSinceLastBlock = secondsSinceLastBlock;
         }
     }
 
@@ -46,9 +50,12 @@ namespace Blockchain
 
         void ProcessBlockPayload(BlockPayload payload)
         {
-            Algorithms.CheckProofOfWork(payload, Connection.NetworkConfig);
+            Algorithm.CheckProofOfWork(payload, Connection.ProtocolConfig);
             // Signal as newest block b/c lazy for a second...
-            NewBestBlock?.Invoke(this, new NewBestBlockEventArgs(payload));
+            // Also need to handle getting seconds since previous block...
+            // Hardcoding it to 60 for now even though it will cause all the
+            // mining difficulty to be off :)
+            NewBestBlock?.Invoke(this, new NewBestBlockEventArgs(payload, 60));
         }
 
         void ProcessInvPayload(InvPayload payload)
@@ -56,7 +63,7 @@ namespace Blockchain
             var unknownBlocks = new List<InvEntryPayload>();
             foreach (InvEntryPayload entry in payload.Entries)
             {
-                if (entry.Type == InvEntryType.MSG_BLOCK)
+                if (entry.Type == InvEntryPayload.InvEntryType.MSG_BLOCK)
                 {
                     unknownBlocks.Add(entry);
                 }

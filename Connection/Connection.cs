@@ -1,22 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Numerics;
 
+using Protocol;
 
 namespace Connection
 {
-
-    public class ConnectionDeadException : Exception
-    {
-        public ConnectionDeadException() { }
-        public ConnectionDeadException(string message) : base(message) { }
-    }
-
     public class NewMessageEventArgs : EventArgs
     {
         public MessagePayload Message;
@@ -27,37 +20,10 @@ namespace Connection
         }
     }
 
-    public class NetworkConfiguration
+    public class ConnectionDeadException : Exception
     {
-        public UInt16 DefaultPort { get; }
-        public UInt32 Magic { get; }
-        public String DNSSeed { get; }
-        public UInt32 MinimumChainLength { get; }
-        public UInt32 MaximumChainLength { get; }
-        public BigInteger MinimumHeaderHash { get; }
-        public BigInteger MinimumChainOrigin { get; }
-        public BigInteger MaximumChainOrigin { get; }
-
-        public NetworkConfiguration(
-            UInt16 defaultPort,
-            UInt32 magic,
-            String dnsSeed,
-            UInt32 minimumChainLength,
-            UInt32 maximumChainLength,
-            BigInteger minimumHeaderHash,
-            BigInteger minimumChainOrigin,
-            BigInteger maximumChainOrigin
-        )
-        {
-            DefaultPort = defaultPort;
-            Magic = magic;
-            DNSSeed = dnsSeed;
-            MinimumChainLength = minimumChainLength;
-            MaximumChainLength = maximumChainLength;
-            MinimumHeaderHash = minimumHeaderHash;
-            MinimumChainOrigin = minimumChainLength;
-            MaximumChainOrigin = maximumChainOrigin;
-        }
+        public ConnectionDeadException() { }
+        public ConnectionDeadException(string message) : base(message) { }
     }
 
     public class Connection
@@ -70,7 +36,8 @@ namespace Connection
         public UInt64 Services { get; }
         public Int32 ProtocolVersion { get; }
         public UInt32 StartHeight { get; }
-        public NetworkConfiguration NetworkConfig { get; }
+        public ConnectionConfiguration ConnectionConfig { get; }
+        public ProtocolConfiguration ProtocolConfig { get; }
         public Boolean Alive;
         public ConnectionDeadException DeathException;
 
@@ -88,14 +55,16 @@ namespace Connection
             IPAddress from,
             IPAddress to,
             UInt16 port,
-            NetworkConfiguration networkConfig,
+            ConnectionConfiguration connectionConfig,
+            ProtocolConfiguration protocolConfig,
             TcpClient client
         )
         {
             From = from;
             To = to;
             Port = port;
-            NetworkConfig = networkConfig;
+            ConnectionConfig = connectionConfig;
+            ProtocolConfig = protocolConfig;
             SentMessages = new List<MessagePayload>();
             ReceivedMessages = new List<MessagePayload>();
             Client = client;
@@ -173,7 +142,7 @@ namespace Connection
 
                 try
                 {
-                    var framer = new MessageFramer(NetworkConfig.Magic);
+                    var framer = new MessageFramer(ProtocolConfig.Magic);
                     var message = framer.NextMessage(Stream);
                     ReceivedMessages.Add(message);
                     return message;
@@ -218,21 +187,27 @@ namespace Connection
             );
         }
 
+        public void SendBlockMessage(BlockPayload blockPayload)
+        {
+            var message = new MessagePayload(ProtocolConfig.Magic, "block", blockPayload);
+            SendMessage(message);
+        }
+
         public void SendGetDataMessage(InvPayload invPayload)
         {
-            var message = new MessagePayload(NetworkConfig.Magic, "getdata", invPayload);
+            var message = new MessagePayload(ProtocolConfig.Magic, "getdata", invPayload);
             SendMessage(message);
         }
 
         void SendVersionMessage()
         {
-            var message = new MessagePayload(NetworkConfig.Magic, "version", GetVersionPayload());
+            var message = new MessagePayload(ProtocolConfig.Magic, "version", GetVersionPayload());
             SendMessage(message);
         }
 
         void SendVerAckMessage()
         {
-            var message = new MessagePayload(NetworkConfig.Magic, "verack", new VerAckPayload());
+            var message = new MessagePayload(ProtocolConfig.Magic, "verack", new VerAckPayload());
             SendMessage(message);
         }
 
